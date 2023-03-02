@@ -1,8 +1,8 @@
 #![allow(unused)]
 
-use std::fmt::{Display, Formatter, Result};
 use chrono::{DateTime, Utc};
 use serde::Serialize;
+use std::fmt::{Display, Formatter, Result};
 
 const NUM_WEIGHTS: usize = 13;
 
@@ -114,7 +114,7 @@ impl Display for Rating {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Default, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Default, Serialize)]
 pub enum State {
     #[default]
     New,

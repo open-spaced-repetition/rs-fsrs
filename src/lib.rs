@@ -1,2 +1,2 @@
-mod model;
 mod fsrs;
+mod model;

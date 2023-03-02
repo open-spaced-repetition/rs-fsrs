@@ -49,7 +49,7 @@ impl Parameters {
                     good_interval + 1.0,
                 );
 
-                scheduling_cards.schedule(now.into(), hard_interval, good_interval, easy_interval);
+                scheduling_cards.schedule(now, hard_interval, good_interval, easy_interval);
             }
             State::Review => {
                 let interval = card.elapsed_days as f64;
@@ -67,11 +67,11 @@ impl Parameters {
                     good_interval + 1.0,
                 );
 
-                scheduling_cards.schedule(now.into(), hard_interval, good_interval, easy_interval);
+                scheduling_cards.schedule(now, hard_interval, good_interval, easy_interval);
             }
         }
 
-        scheduling_cards.record_log(&card, &DateTime::<Utc>::from(now)) // SystemTime vs UTC
+        scheduling_cards.record_log(&card, &now)
     }
 } // L51
   // L53
@@ -115,10 +115,10 @@ impl SchedulingCards {
         self.hard.scheduled_days = hard_interval as u64;
         self.good.scheduled_days = good_interval as u64;
         self.easy.scheduled_days = easy_interval as u64;
-        self.again.due = (now + chrono::Duration::minutes(5)).into();
-        self.hard.due = (now + chrono::Duration::days(hard_interval as i64)).into();
-        self.good.due = (now + chrono::Duration::days(good_interval as i64)).into();
-        self.easy.due = (now + chrono::Duration::days(easy_interval as i64)).into();
+        self.again.due = now + chrono::Duration::minutes(5);
+        self.hard.due = now + chrono::Duration::days(hard_interval as i64);
+        self.good.due = now + chrono::Duration::days(good_interval as i64);
+        self.easy.due = now + chrono::Duration::days(easy_interval as i64);
     }
 }
 impl SchedulingCards {
@@ -137,7 +137,7 @@ impl SchedulingCards {
                         rating: Rating::Again,
                         scheduled_days: self.again.scheduled_days,
                         elapsed_days: card.elapsed_days,
-                        review: now.clone(),
+                        review: *now,
                         state: card.state.clone(),
                     },
                 },
@@ -150,7 +150,7 @@ impl SchedulingCards {
                         rating: Rating::Hard,
                         scheduled_days: self.hard.scheduled_days,
                         elapsed_days: card.elapsed_days,
-                        review: now.clone(),
+                        review: *now,
                         state: card.state.clone(),
                     },
                 },
@@ -163,7 +163,7 @@ impl SchedulingCards {
                         rating: Rating::Good,
                         scheduled_days: self.good.scheduled_days,
                         elapsed_days: card.elapsed_days,
-                        review: now.clone(),
+                        review: *now,
                         state: card.state.clone(),
                     },
                 },
@@ -176,7 +176,7 @@ impl SchedulingCards {
                         rating: Rating::Easy,
                         scheduled_days: self.easy.scheduled_days,
                         elapsed_days: card.elapsed_days,
-                        review: now.clone(),
+                        review: *now,
                         state: card.state.clone(),
                     },
                 },
@@ -210,11 +210,11 @@ impl Parameters {
     }
     // 142
     fn init_stability(&self, r: Rating) -> f64 {
-        return f64::max(self.w.0[0] + self.w.0[1] * f64::from(r as i8), 0.1);
+        f64::max(self.w.0[0] + self.w.0[1] * f64::from(r as i8), 0.1)
     }
 
     fn init_difficulty(&self, r: Rating) -> f64 {
-        return constrain_difficulty(self.w.0[2] + self.w.0[3] * (f64::from(r as i8) - 2 as f64));
+        constrain_difficulty(self.w.0[2] + self.w.0[3] * (f64::from(r as i8) - 2_f64))
     }
 
     // L149-177
@@ -266,7 +266,7 @@ mod test {
             .unwrap();
         let scheduling_cards = p.repeat(card, now);
         let schedule = serde_json::to_string(&scheduling_cards).unwrap();
-        println!("{}",schedule);
+        println!("{}", schedule);
 
         let card = scheduling_cards.get(&Rating::Good).unwrap().card.clone();
         let now = card.due;
