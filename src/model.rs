@@ -38,7 +38,7 @@ impl Default for Parameters {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Default)] // TODO: JSON serial
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct Card {
     pub due: chrono::DateTime<Utc>,
     pub stability: f64,
@@ -51,7 +51,7 @@ pub struct Card {
     pub last_review: chrono::DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize)] //TODO: JSON serialization
+#[derive(Debug, Clone, Serialize)]
 pub struct ReviewLog {
     pub rating: Rating,
     pub scheduled_days: u64,
@@ -109,8 +109,9 @@ impl Display for Rating {
             Rating::Hard => "Hard",
             Rating::Good => "Good",
             Rating::Easy => "Easy",
+            _ => "unknown",
         };
-        write!(f, "unknown")
+        write!(f, "{rating_str}")
     }
 }
 
