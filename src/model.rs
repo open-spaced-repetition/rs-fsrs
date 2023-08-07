@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result};
 
-const NUM_WEIGHTS: usize = 13;
+const NUM_WEIGHTS: usize = 17;
 
 #[derive(Debug, Clone)]
 pub struct Weights(pub [f64; NUM_WEIGHTS]);
@@ -12,7 +12,7 @@ pub struct Weights(pub [f64; NUM_WEIGHTS]);
 impl Default for Weights {
     fn default() -> Self {
         Weights([
-            1.0, 1.0, 5.0, -0.5, -0.5, 0.2, 1.4, -0.12, 0.8, 2.0, -0.2, 0.2, 1.0,
+            0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61,
         ])
     }
 }
@@ -21,8 +21,6 @@ impl Default for Weights {
 pub struct Parameters {
     pub request_retention: f64,
     pub maximum_interval: f64,
-    pub easy_bonus: f64,
-    pub hard_factor: f64,
     pub w: Weights,
 }
 
@@ -31,8 +29,6 @@ impl Default for Parameters {
         Parameters {
             request_retention: 0.9,
             maximum_interval: 36500.0,
-            easy_bonus: 1.3,
-            hard_factor: 1.2,
             w: Default::default(),
         }
     }
@@ -85,19 +81,19 @@ pub struct SchedulingInfo {
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Serialize)]
 pub enum Rating {
-    Again = 0,
-    Hard = 1,
-    Good = 2,
-    Easy = 3,
+    Again = 1,
+    Hard = 2,
+    Good = 3,
+    Easy = 4,
 }
 
 impl From<Rating> for i8 {
     fn from(rating: Rating) -> i8 {
         match rating {
-            Rating::Again => 0,
-            Rating::Hard => 1,
-            Rating::Good => 2,
-            Rating::Easy => 3,
+            Rating::Again => 1,
+            Rating::Hard => 2,
+            Rating::Good => 3,
+            Rating::Easy => 4,
         }
     }
 }
