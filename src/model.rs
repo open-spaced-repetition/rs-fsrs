@@ -44,7 +44,7 @@ pub struct Card {
     pub reps: u64,
     pub lapses: u64,
     pub state: State,
-    pub last_review: chrono::DateTime<Utc>,
+    pub last_review: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize)]
