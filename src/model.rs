@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result};
@@ -12,7 +10,8 @@ pub struct Weights(pub [f64; NUM_WEIGHTS]);
 impl Default for Weights {
     fn default() -> Self {
         Weights([
-            0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61,
+            0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26,
+            0.29, 2.61,
         ])
     }
 }
@@ -65,11 +64,13 @@ pub struct SchedulingCards {
 }
 
 impl SchedulingCards {
-    pub fn init(&mut self, card: &Card) {
-        self.again = card.clone();
-        self.hard = card.clone();
-        self.good = card.clone();
-        self.easy = card.clone();
+    pub fn init(card: &Card) -> Self {
+        Self {
+            again: card.clone(),
+            hard: card.clone(),
+            good: card.clone(),
+            easy: card.clone(),
+        }
     }
 }
 
@@ -101,11 +102,10 @@ impl From<Rating> for i8 {
 impl Display for Rating {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let rating_str = match self {
-            Rating::Again => "Again",
-            Rating::Hard => "Hard",
-            Rating::Good => "Good",
-            Rating::Easy => "Easy",
-            _ => "unknown",
+            Self::Again => "Again",
+            Self::Hard => "Hard",
+            Self::Good => "Good",
+            Self::Easy => "Easy",
         };
         write!(f, "{rating_str}")
     }

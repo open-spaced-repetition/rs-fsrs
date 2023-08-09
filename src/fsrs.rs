@@ -6,11 +6,7 @@ use std::collections::HashMap;
 
 // L8
 impl Parameters {
-    pub fn repeat(
-        &self,
-        mut card: Card,
-        now: chrono::DateTime<Utc>,
-    ) -> HashMap<Rating, SchedulingInfo> {
+    pub fn repeat(&self, mut card: Card, now: DateTime<Utc>) -> HashMap<Rating, SchedulingInfo> {
         if card.state == State::New {
             card.elapsed_days = 0;
         } else {
@@ -20,9 +16,8 @@ impl Parameters {
         }
         card.last_review = now;
         card.reps += 1;
-        let mut scheduling_cards = SchedulingCards::default();
-        scheduling_cards.init(&card);
-        scheduling_cards.update_state(&card.state); // L18
+        let mut scheduling_cards = SchedulingCards::init(&card) //
+            .update_state(&card.state); // L18
 
         match card.state {
             State::New => {
@@ -32,8 +27,7 @@ impl Parameters {
                 scheduling_cards.hard.due = now.checked_add_signed(Duration::seconds(300)).unwrap();
                 scheduling_cards.good.due = now.checked_add_signed(Duration::seconds(600)).unwrap();
 
-                let easy_interval =
-                    self.next_interval(scheduling_cards.easy.stability);
+                let easy_interval = self.next_interval(scheduling_cards.easy.stability);
                 scheduling_cards.easy.scheduled_days = easy_interval.round() as u64;
                 scheduling_cards.easy.due =
                     now + Duration::seconds((easy_interval * 86400.0) as i64);
@@ -41,10 +35,9 @@ impl Parameters {
             State::Learning | State::Relearning => {
                 let hard_interval = 0.0;
                 let good_interval = self.next_interval(scheduling_cards.good.stability);
-                let easy_interval = f64::max(
-                    self.next_interval(scheduling_cards.easy.stability),
-                    good_interval + 1.0,
-                );
+                let easy_interval = self
+                    .next_interval(scheduling_cards.easy.stability)
+                    .max(good_interval + 1.0);
 
                 scheduling_cards.schedule(now, hard_interval, good_interval, easy_interval);
             }
@@ -57,12 +50,11 @@ impl Parameters {
 
                 let hard_interval = self.next_interval(scheduling_cards.hard.stability);
                 let good_interval = self.next_interval(scheduling_cards.good.stability);
-                let hard_interval = f64::min(hard_interval, good_interval);
-                let good_interval = f64::max(good_interval, hard_interval + 1.0);
-                let easy_interval = f64::max(
-                    self.next_interval(scheduling_cards.easy.stability),
-                    good_interval + 1.0,
-                );
+                let hard_interval = hard_interval.min(good_interval);
+                let good_interval = good_interval.max(hard_interval + 1.0);
+                let easy_interval = self
+                    .next_interval(scheduling_cards.easy.stability)
+                    .max(good_interval + 1.0);
 
                 scheduling_cards.schedule(now, hard_interval, good_interval, easy_interval);
             }
@@ -73,29 +65,31 @@ impl Parameters {
 } // L51
   // L53
 impl SchedulingCards {
-    fn update_state(&mut self, state: &State) {
+    fn update_state(&mut self, state: &State) -> SchedulingCards {
+        use State::*;
         match state {
-            State::New => {
-                self.again.state = State::Learning;
-                self.hard.state = State::Learning;
-                self.good.state = State::Learning;
-                self.easy.state = State::Review;
+            New => {
+                self.again.state = Learning;
+                self.hard.state = Learning;
+                self.good.state = Learning;
+                self.easy.state = Review;
                 self.again.lapses += 1;
             }
-            State::Learning | State::Relearning => {
+            Learning | Relearning => {
                 self.again.state = state.clone();
                 self.hard.state = state.clone();
-                self.good.state = State::Review;
-                self.easy.state = State::Review;
+                self.good.state = Review;
+                self.easy.state = Review;
             }
-            State::Review => {
-                self.again.state = State::Relearning;
-                self.hard.state = State::Review;
-                self.good.state = State::Review;
-                self.easy.state = State::Review;
+            Review => {
+                self.again.state = Relearning;
+                self.hard.state = Review;
+                self.good.state = Review;
+                self.easy.state = Review;
                 self.again.lapses += 1;
             }
         }
+        self.clone()
     }
 }
 
@@ -103,7 +97,7 @@ impl SchedulingCards {
 impl SchedulingCards {
     fn schedule(
         &mut self,
-        now: chrono::DateTime<chrono::Utc>,
+        now: DateTime<Utc>,
         hard_interval: f64,
         good_interval: f64,
         easy_interval: f64,
@@ -112,30 +106,28 @@ impl SchedulingCards {
         self.hard.scheduled_days = hard_interval as u64;
         self.good.scheduled_days = good_interval as u64;
         self.easy.scheduled_days = easy_interval as u64;
-        self.again.due = now + chrono::Duration::minutes(5);
-        if hard_interval > 0.0 {
-            self.hard.due = now + chrono::Duration::days(hard_interval as i64);
-        } else {
-            self.hard.due = now + chrono::Duration::minutes(10);
-        }
-        self.good.due = now + chrono::Duration::days(good_interval as i64);
-        self.easy.due = now + chrono::Duration::days(easy_interval as i64);
+        self.again.due = now + Duration::minutes(5);
+        self.hard.due = now
+            + if hard_interval > 0.0 {
+                Duration::days(hard_interval as i64)
+            } else {
+                Duration::minutes(10)
+            };
+        self.good.due = now + Duration::days(good_interval as i64);
+        self.easy.due = now + Duration::days(easy_interval as i64);
     }
 }
 impl SchedulingCards {
     // L86
-    fn record_log(
-        &self,
-        card: &Card,
-        now: &chrono::DateTime<chrono::Utc>,
-    ) -> HashMap<Rating, SchedulingInfo> {
+    fn record_log(&self, card: &Card, now: &DateTime<Utc>) -> HashMap<Rating, SchedulingInfo> {
+        use Rating::*;
         HashMap::from([
             (
-                Rating::Again,
+                Again,
                 SchedulingInfo {
                     card: self.again.clone(),
                     review_log: ReviewLog {
-                        rating: Rating::Again,
+                        rating: Again,
                         scheduled_days: self.again.scheduled_days,
                         elapsed_days: card.elapsed_days,
                         review: *now,
@@ -144,11 +136,11 @@ impl SchedulingCards {
                 },
             ),
             (
-                Rating::Hard,
+                Hard,
                 SchedulingInfo {
                     card: self.hard.clone(),
                     review_log: ReviewLog {
-                        rating: Rating::Hard,
+                        rating: Hard,
                         scheduled_days: self.hard.scheduled_days,
                         elapsed_days: card.elapsed_days,
                         review: *now,
@@ -157,11 +149,11 @@ impl SchedulingCards {
                 },
             ),
             (
-                Rating::Good,
+                Good,
                 SchedulingInfo {
                     card: self.good.clone(),
                     review_log: ReviewLog {
-                        rating: Rating::Good,
+                        rating: Good,
                         scheduled_days: self.good.scheduled_days,
                         elapsed_days: card.elapsed_days,
                         review: *now,
@@ -170,11 +162,11 @@ impl SchedulingCards {
                 },
             ),
             (
-                Rating::Easy,
+                Easy,
                 SchedulingInfo {
                     card: self.easy.clone(),
                     review_log: ReviewLog {
-                        rating: Rating::Easy,
+                        rating: Easy,
                         scheduled_days: self.easy.scheduled_days,
                         elapsed_days: card.elapsed_days,
                         review: *now,
@@ -203,15 +195,18 @@ impl Parameters {
         s.again.difficulty = self.next_difficulty(last_d, Again);
         s.again.stability = self.next_forget_stability(s.again.difficulty, last_s, retrievability);
         s.hard.difficulty = self.next_difficulty(last_d, Hard);
-        s.hard.stability = self.next_recall_stability(s.hard.difficulty, last_s, retrievability, Hard);
+        s.hard.stability =
+            self.next_recall_stability(s.hard.difficulty, last_s, retrievability, Hard);
         s.good.difficulty = self.next_difficulty(last_d, Good);
-        s.good.stability = self.next_recall_stability(s.good.difficulty, last_s, retrievability, Good);
+        s.good.stability =
+            self.next_recall_stability(s.good.difficulty, last_s, retrievability, Good);
         s.easy.difficulty = self.next_difficulty(last_d, Easy);
-        s.easy.stability = self.next_recall_stability(s.easy.difficulty, last_s, retrievability, Easy);
+        s.easy.stability =
+            self.next_recall_stability(s.easy.difficulty, last_s, retrievability, Easy);
     }
     // 142
     fn init_stability(&self, r: Rating) -> f64 {
-        f64::max(self.w.0[usize::from(r as usize) - 1], 0.1)
+        self.w.0[(r as usize) - 1].max(0.1)
     }
 
     fn init_difficulty(&self, r: Rating) -> f64 {
@@ -234,16 +229,8 @@ impl Parameters {
     }
 
     fn next_recall_stability(&self, d: f64, s: f64, r: f64, rating: Rating) -> f64 {
-        let hard_penalty = if rating == Hard {
-            self.w.0[15]
-        } else {
-            1.0
-        };
-        let easy_bonus = if rating == Easy {
-            self.w.0[16]
-        } else {
-            1.0
-        };
+        let hard_penalty = if rating == Hard { self.w.0[15] } else { 1.0 };
+        let easy_bonus = if rating == Easy { self.w.0[16] } else { 1.0 };
         s * (1.0
             + f64::exp(self.w.0[8])
                 * (11.0 - d)
@@ -271,23 +258,28 @@ mod test {
 
     #[test]
     fn test_repeat() {
-        let mut p = Parameters::default();
-        p.w = Weights([
-            1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763, 0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902,
-        ]);
+        let p = Parameters {
+            w: Weights([
+                1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763, 0.9953,
+                2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902,
+            ]),
+            ..Default::default()
+        };
         let mut card = Card::default();
         let mut now = Utc
             .with_ymd_and_hms(2022, 11, 29, 12, 30, 0)
             .single()
             .unwrap();
         // empty int vec
-        let mut ivl_vec: Vec<u64> = Vec::new();
-        let mut state_vec: Vec<State> = Vec::new();
-        let mut scheduling_cards: HashMap<Rating, SchedulingInfo> = p.repeat(card, now);
-        let mut schedule = serde_json::to_string(&scheduling_cards).unwrap();
+        let mut ivl_vec = vec![];
+        let mut state_vec = vec![];
+        let mut scheduling_cards = p.repeat(card, now);
+        let mut schedule = serde_json::to_string_pretty(&scheduling_cards).unwrap();
         println!("{}", schedule);
 
-        let ratings = vec![Good, Good, Good, Good, Good, Good, Again, Again, Good, Good, Good, Good, Good];
+        let ratings = [
+            Good, Good, Good, Good, Good, Good, Again, Again, Good, Good, Good, Good, Good,
+        ];
         for rating in ratings {
             card = scheduling_cards[&rating].card.clone();
             let revlog = scheduling_cards[&rating].review_log.clone();
@@ -295,17 +287,23 @@ mod test {
             state_vec.push(revlog.state);
             now = card.due;
             scheduling_cards = p.repeat(card, now);
-            schedule = serde_json::to_string(&scheduling_cards).unwrap();
+            schedule = serde_json::to_string_pretty(&scheduling_cards).unwrap();
             println!("{}", schedule);
         }
 
-        println!("{:?}", ivl_vec);
-        println!("{:?}", state_vec);
+        dbg!(&ivl_vec);
+        dbg!(&state_vec);
 
-        assert_eq!(ivl_vec, vec![0, 5, 16, 43, 106, 236, 0, 0, 12, 25, 47, 85, 147]);
+        assert_eq!(
+            ivl_vec,
+            vec![0, 5, 16, 43, 106, 236, 0, 0, 12, 25, 47, 85, 147]
+        );
         assert_eq!(
             state_vec,
-            vec![New, Learning, Review, Review, Review, Review, Review, Relearning, Relearning, Review, Review, Review, Review]
+            vec![
+                New, Learning, Review, Review, Review, Review, Review, Relearning, Relearning,
+                Review, Review, Review, Review
+            ]
         );
     }
 }
