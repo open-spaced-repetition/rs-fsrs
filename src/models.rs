@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -20,6 +21,29 @@ impl Rating {
     pub fn iter() -> std::slice::Iter<'static, Self> {
         static VARIANTS: [Rating; 4] = [Rating::Again, Rating::Hard, Rating::Good, Rating::Easy];
         VARIANTS.iter()
+    }
+}
+
+pub struct ScheduledCards<'a> {
+    pub cards: HashMap<&'a Rating, Card>,
+    pub now: DateTime<Utc>
+}
+
+impl ScheduledCards<'_> {
+    pub fn new(card: &Card, now: DateTime<Utc>) -> Self {
+        let mut cards = HashMap::new();
+        for rating in Rating::iter() {
+            cards.insert(rating, card.clone());
+            if let Some(card) = cards.get_mut(rating) {
+                card.update_state(*rating);
+            }
+        }
+
+        return Self { cards, now }
+    }
+
+    pub fn select_card(&self, rating: Rating) -> Card {
+        return self.cards.get(&rating).unwrap().clone();
     }
 }
 
