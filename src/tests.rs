@@ -2,7 +2,7 @@
 use crate::models::State;
 #[cfg(test)]
 use crate::{
-    fsrs::FSRS,
+    algo::FSRS,
     models::{Card, Parameters, Rating},
 };
 #[cfg(test)]
@@ -36,14 +36,14 @@ fn test_interval() {
     let mut params = Parameters::default();
     params.w = WEIGHTS;
 
-    let mut fsrs = FSRS::new(params);
+    let fsrs = FSRS::new(params);
     let mut card = Card::new();
     let mut now = Utc::now();
     let mut interval_history: Vec<i64> = Vec::new();
 
     for rating in TEST_RATINGS.iter() {
-        fsrs.schedule(&mut card, now);
-        card = fsrs.select_card(*rating);
+        let scheduled_cards = fsrs.schedule(card, now);
+        card = scheduled_cards.select_card(*rating);
 
         interval_history.push(card.scheduled_days);
         now = card.due;
@@ -57,16 +57,16 @@ fn test_state() {
     let mut params = Parameters::default();
     params.w = WEIGHTS;
 
-    let mut fsrs = FSRS::new(params);
+    let fsrs = FSRS::new(params);
     let mut card = Card::new();
     let mut now = Utc::now();
     let mut state_history: Vec<State> = Vec::new();
 
     for rating in TEST_RATINGS.iter() {
-        fsrs.schedule(&mut card, now);
         state_history.push(card.state);
+        let scheduled_cards = fsrs.schedule(card, now);
 
-        card = fsrs.select_card(*rating);
+        card = scheduled_cards.select_card(*rating);
         now = card.due;
     }
     let expected: Vec<State> = vec![
