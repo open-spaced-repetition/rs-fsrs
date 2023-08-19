@@ -1,18 +1,24 @@
 # rs-fsrs
+A rust implementation of FSRS.
 
-Port from go-fsrs
+Quickstart:
+```rust
+use chrono::Utc;
+use fsrs::FSRS;
+use fsrs::models::{Card, Rating::Easy};
 
-Mostly RIIR by ChatGPT.
 
-code is in `src/fsrs.rs` and `src/model.rs`
+fn main() {
+    let mut fsrs = FSRS::default();
 
-run
+    let mut card = Card::new();
+    fsrs.schedule(&mut card, Utc::now());
 
-```sh
-cargo test -- --nocapture
+    card = fsrs.select_card(Easy);
+
+    println!("{}", card.scheduled_days);
+}
 ```
-
----
 
 ## LICENSE
 
