@@ -1,4 +1,6 @@
-pub mod fsrs;
-pub use fsrs::FSRS;
-pub mod models;
-pub mod tests;
+mod algo;
+pub use algo::FSRS;
+
+mod models;
+pub use models::{Card, Rating};
+mod tests;
