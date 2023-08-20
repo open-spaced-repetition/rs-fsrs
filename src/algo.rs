@@ -29,7 +29,6 @@ impl FSRS {
         } else {
             card.elapsed_days = (now - card.last_review).num_days();
         }
-        // self.output_cards = HashMap::new();
         card.last_review = now;
 
         let mut output_cards = ScheduledCards::new(&card, now);
@@ -91,10 +90,6 @@ impl FSRS {
 
         output_cards
     }
-
-    // pub fn select_card(&mut self, rating: Rating) -> Card {
-    //     return output_cards.cards.remove(&rating).unwrap();
-    // }
 
     fn set_due(&self, output_cards: &mut ScheduledCards, rating: Rating, duration: Duration) {
         if let Some(card) = output_cards.cards.get_mut(&rating) {
