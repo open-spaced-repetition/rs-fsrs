@@ -24,6 +24,9 @@ impl FSRS {
 
     pub fn schedule(&self, mut card: Card, now: DateTime<Utc>) -> ScheduledCards {
         card.reps += 1;
+        card.previous_elapsed_days = card.elapsed_days;
+        card.previous_state = card.state;
+        
         if card.state == New {
             card.elapsed_days = 0;
         } else {
@@ -87,7 +90,7 @@ impl FSRS {
                 self.set_due(&mut output_cards, Hard, Duration::days(easy_interval));
             }
         }
-
+        self.save_logs(&mut output_cards);
         output_cards
     }
 
@@ -103,6 +106,14 @@ impl FSRS {
         }
     }
 
+    fn save_logs(&self, output_cards: &mut ScheduledCards) {
+        for rating in Rating::iter() {
+            if let Some(card) = output_cards.cards.get_mut(rating) {
+                card.save_log(*rating);
+            }
+        }
+    }
+    
     fn init_difficulty_stability(&self, output_cards: &mut ScheduledCards) {
         for rating in Rating::iter() {
             let rating_int: i32 = *rating as i32;

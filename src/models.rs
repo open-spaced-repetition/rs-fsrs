@@ -47,6 +47,8 @@ impl ScheduledCards<'_> {
     }
 }
 
+
+#[derive(Clone, Debug)]
 pub struct ReviewLog {
     pub rating: Rating,
     pub elapsed_days: i64,
@@ -85,6 +87,9 @@ pub struct Card {
     pub lapses: i32,
     pub state: State,
     pub last_review: DateTime<Utc>,
+    pub previous_elapsed_days: i64,
+    pub previous_state: State,
+    pub log: Option<ReviewLog>
 }
 
 impl Card {
@@ -99,6 +104,9 @@ impl Card {
             lapses: 0,
             state: State::New,
             last_review: Utc::now(),
+            previous_elapsed_days: 0,
+            previous_state: State::New,
+            log: None
         }
     }
 
@@ -106,14 +114,14 @@ impl Card {
         (1.0 + self.elapsed_days as f32 / (9.0 * self.stability as f32)).powf(-1.0)
     }
 
-    pub fn save_log(&self, rating: Rating) -> ReviewLog {
-        ReviewLog {
+    pub fn save_log(&mut self, rating: Rating) {
+        self.log = Some(ReviewLog {
             rating,
-            elapsed_days: self.elapsed_days,
+            elapsed_days: self.previous_elapsed_days,
             scheduled_days: self.scheduled_days,
-            state: self.state,
-            reviewed_date: Utc::now(),
-        }
+            state: self.previous_state,
+            reviewed_date: self.last_review,
+        });
     }
 
     pub fn update_state(&mut self, rating: Rating) {
