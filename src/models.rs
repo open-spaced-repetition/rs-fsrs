@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use chrono::{DateTime, Utc};
+use std::collections::HashMap;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum State {
@@ -26,7 +26,7 @@ impl Rating {
 
 pub struct ScheduledCards<'a> {
     pub cards: HashMap<&'a Rating, Card>,
-    pub now: DateTime<Utc>
+    pub now: DateTime<Utc>,
 }
 
 impl ScheduledCards<'_> {
@@ -39,14 +39,13 @@ impl ScheduledCards<'_> {
             }
         }
 
-        return Self { cards, now }
+        return Self { cards, now };
     }
 
     pub fn select_card(&self, rating: Rating) -> Card {
         return self.cards.get(&rating).unwrap().clone();
     }
 }
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ReviewLog {
@@ -88,7 +87,7 @@ pub struct Card {
     pub state: State,
     pub last_review: DateTime<Utc>,
     pub previous_state: State,
-    pub log: Option<ReviewLog>
+    pub log: Option<ReviewLog>,
 }
 
 impl Card {
@@ -104,7 +103,7 @@ impl Card {
             state: State::New,
             last_review: Utc::now(),
             previous_state: State::New,
-            log: None
+            log: None,
         }
     }
 

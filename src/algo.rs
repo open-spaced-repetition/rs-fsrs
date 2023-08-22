@@ -4,28 +4,26 @@ use crate::models::State::{Learning, New, Relearning, Review};
 use crate::models::*;
 use chrono::{DateTime, Duration, Utc};
 pub struct FSRS {
-    params: Parameters
+    params: Parameters,
 }
 
 impl Default for FSRS {
     fn default() -> Self {
         Self {
-            params: Parameters::default()
+            params: Parameters::default(),
         }
     }
 }
 
 impl FSRS {
     pub fn new(params: Parameters) -> Self {
-        Self {
-            params
-        }
+        Self { params }
     }
 
     pub fn schedule(&self, mut card: Card, now: DateTime<Utc>) -> ScheduledCards {
         card.reps += 1;
         card.previous_state = card.state;
-        
+
         if card.state == New {
             card.elapsed_days = 0;
         } else {
@@ -35,15 +33,13 @@ impl FSRS {
 
         let mut output_cards = ScheduledCards::new(&card, now);
 
-
         match card.state {
             New => {
                 self.init_difficulty_stability(&mut output_cards);
-                
+
                 self.set_due(&mut output_cards, Again, Duration::minutes(1));
                 self.set_due(&mut output_cards, Hard, Duration::minutes(5));
                 self.set_due(&mut output_cards, Good, Duration::minutes(10));
-
 
                 let easy_interval = self.next_interval(&mut output_cards, Easy).unwrap();
                 self.set_scheduled_days(&mut output_cards, Easy, easy_interval);
@@ -112,7 +108,7 @@ impl FSRS {
             }
         }
     }
-    
+
     fn init_difficulty_stability(&self, output_cards: &mut ScheduledCards) {
         for rating in Rating::iter() {
             let rating_int: i32 = *rating as i32;
@@ -125,7 +121,11 @@ impl FSRS {
         }
     }
 
-    fn next_interval(&self, output_cards: &mut ScheduledCards, rating: Rating) -> Result<i64, String> {
+    fn next_interval(
+        &self,
+        output_cards: &mut ScheduledCards,
+        rating: Rating,
+    ) -> Result<i64, String> {
         if let Some(card) = output_cards.cards.get_mut(&rating) {
             let new_interval = card.stability * 9.0 * (1.0 / self.params.request_retention - 1.0);
             return Ok((new_interval.round() as i64)
