@@ -24,7 +24,6 @@ impl FSRS {
 
     pub fn schedule(&self, mut card: Card, now: DateTime<Utc>) -> ScheduledCards {
         card.reps += 1;
-        card.previous_elapsed_days = card.elapsed_days;
         card.previous_state = card.state;
         
         if card.state == New {
