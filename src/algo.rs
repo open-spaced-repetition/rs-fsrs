@@ -3,16 +3,10 @@ use crate::models::Rating::{Again, Easy, Good, Hard};
 use crate::models::State::{Learning, New, Relearning, Review};
 use crate::models::*;
 use chrono::{DateTime, Duration, Utc};
+
+#[derive(Debug, Default, Clone, Copy)]
 pub struct FSRS {
     params: Parameters,
-}
-
-impl Default for FSRS {
-    fn default() -> Self {
-        Self {
-            params: Parameters::default(),
-        }
-    }
 }
 
 impl FSRS {
@@ -146,13 +140,11 @@ impl FSRS {
     }
 
     fn next_recall_stability(&self, output_cards: &mut ScheduledCards, rating: Rating) {
-        let mut modifier: f32 = 1.0;
-        if rating == Hard {
-            modifier = self.params.w[15];
-        }
-        if rating == Easy {
-            modifier = self.params.w[16];
-        }
+        let modifier = match rating {
+            Hard => self.params.w[15],
+            Easy => self.params.w[16],
+            _ => 1.0,
+        };
 
         if let Some(card) = output_cards.cards.get_mut(&rating) {
             let retrievability = card.get_retrievability();

@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub enum State {
+    #[default]
     New = 0,
     Learning = 1,
     Review = 2,
@@ -24,6 +25,7 @@ impl Rating {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct ScheduledCards<'a> {
     pub cards: HashMap<&'a Rating, Card>,
     pub now: DateTime<Utc>,
@@ -56,6 +58,7 @@ pub struct ReviewLog {
     pub reviewed_date: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct Parameters {
     pub request_retention: f32,
     pub maximum_interval: i32,
@@ -75,7 +78,7 @@ impl Default for Parameters {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Card {
     pub due: DateTime<Utc>,
     pub stability: f32,
@@ -94,16 +97,8 @@ impl Card {
     pub fn new() -> Self {
         Self {
             due: Utc::now(),
-            stability: 0.0,
-            difficulty: 0.0,
-            elapsed_days: 0,
-            scheduled_days: 0,
-            reps: 0,
-            lapses: 0,
-            state: State::New,
             last_review: Utc::now(),
-            previous_state: State::New,
-            log: None,
+            ..Default::default()
         }
     }
 
@@ -123,16 +118,11 @@ impl Card {
 
     pub fn update_state(&mut self, rating: Rating) {
         match self.state {
-            State::New => {
-                if rating == Rating::Again {
-                    self.lapses += 1;
-                }
-                if rating == Rating::Easy {
-                    self.state = State::Review;
-                } else {
-                    self.state = State::Learning;
-                }
-            }
+            State::New => match rating {
+                Rating::Again => self.lapses += 1,
+                Rating::Easy => self.state = State::Review,
+                _ => self.state = State::Learning,
+            },
             State::Learning | State::Relearning => {
                 if rating == Rating::Good || rating == Rating::Easy {
                     self.state = State::Review
