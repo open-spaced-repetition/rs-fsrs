@@ -9,14 +9,19 @@ use fsrs::models::{Card, Rating::Easy};
 
 
 fn main() {
-    let mut fsrs = FSRS::default();
+    use chrono::Utc;
+    use fsrs::{FSRS, Card, Rating};
 
-    let mut card = Card::new();
-    fsrs.schedule(&mut card, Utc::now());
+    fn main() {
+        let fsrs = FSRS::default();
 
-    card = fsrs.select_card(Easy);
+        let card = Card::new();
+        let scheduled_cards = fsrs.schedule(card, Utc::now());
 
-    println!("{}", card.scheduled_days);
+        let updated_card = scheduled_cards.select_card(Rating::Easy);
+
+        println!("{:?}", updated_card.log);
+    }
 }
 ```
 
