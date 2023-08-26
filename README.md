@@ -4,19 +4,17 @@ A rust implementation of FSRS.
 Quickstart:
 ```rust
 use chrono::Utc;
-use fsrs::FSRS;
-use fsrs::models::{Card, Rating::Easy};
-
+use fsrs::{FSRS, Card, Rating::Easy};
 
 fn main() {
-    let mut fsrs = FSRS::default();
+    let fsrs = FSRS::default();
+    let card = Card::new();
+    
+    let scheduled_cards = fsrs.schedule(card, Utc::now());
 
-    let mut card = Card::new();
-    fsrs.schedule(&mut card, Utc::now());
+    let updated_card = scheduled_cards.select_card(Easy);
 
-    card = fsrs.select_card(Easy);
-
-    println!("{}", card.scheduled_days);
+    println!("{:?}", updated_card.log);
 }
 ```
 
