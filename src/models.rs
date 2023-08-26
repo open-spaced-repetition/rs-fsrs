@@ -41,11 +41,11 @@ impl ScheduledCards<'_> {
             }
         }
 
-        return Self { cards, now };
+        Self { cards, now }
     }
 
     pub fn select_card(&self, rating: Rating) -> Card {
-        return self.cards.get(&rating).unwrap().clone();
+        self.cards.get(&rating).unwrap().clone()
     }
 }
 
@@ -103,7 +103,7 @@ impl Card {
     }
 
     pub fn get_retrievability(&self) -> f32 {
-        (1.0 + self.elapsed_days as f32 / (9.0 * self.stability as f32)).powf(-1.0)
+        (1.0 + self.elapsed_days as f32 / (9.0 * self.stability)).powf(-1.0)
     }
 
     pub fn save_log(&mut self, rating: Rating) {

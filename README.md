@@ -18,6 +18,16 @@ fn main() {
 }
 ```
 
+## Development
+
+run
+
+```
+cargo fmt
+cargo clippy -- -Dwarnings
+cargo test --release
+```
+
 ## LICENSE
 
 MIT
