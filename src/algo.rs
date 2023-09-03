@@ -177,7 +177,7 @@ impl FSRS {
                     card.difficulty - (self.params.w[6] * (rating_int as f32 - 3.0));
                 let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
                 card.difficulty = mean_reversion.max(1.0).min(10.0);
-                output_cards.cards.insert(rating, card);
+                output_cards.cards.insert(*rating, card);
             }
         }
     }
