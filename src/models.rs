@@ -26,16 +26,16 @@ impl Rating {
 }
 
 #[derive(Debug, Clone)]
-pub struct ScheduledCards<'a> {
-    pub cards: HashMap<&'a Rating, Card>,
+pub struct ScheduledCards {
+    pub cards: HashMap<Rating, Card>,
     pub now: DateTime<Utc>,
 }
 
-impl ScheduledCards<'_> {
+impl ScheduledCards {
     pub fn new(card: &Card, now: DateTime<Utc>) -> Self {
         let mut cards = HashMap::new();
         for rating in Rating::iter() {
-            cards.insert(rating, card.clone());
+            cards.insert(*rating, card.clone());
             if let Some(card) = cards.get_mut(rating) {
                 card.update_state(*rating);
             }
