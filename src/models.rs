@@ -31,7 +31,7 @@ pub struct ScheduledCards {
     pub now: DateTime<Utc>,
 }
 
-impl ScheduledCards{
+impl ScheduledCards {
     pub fn new(card: &Card, now: DateTime<Utc>) -> Self {
         let mut cards = HashMap::new();
         for rating in Rating::iter() {
