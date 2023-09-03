@@ -55,7 +55,7 @@ impl FSRS {
                 self.set_due(&mut output_cards, Good, Duration::days(good_interval));
 
                 self.set_scheduled_days(&mut output_cards, Easy, easy_interval);
-                self.set_due(&mut output_cards, Hard, Duration::days(easy_interval));
+                self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
             Review => {
                 self.next_difficulty(&mut output_cards);
