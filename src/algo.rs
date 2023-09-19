@@ -2,8 +2,8 @@ use crate::models::Rating;
 use crate::models::Rating::{Again, Easy, Good, Hard};
 use crate::models::State::{Learning, New, Relearning, Review};
 use crate::models::*;
-use std::cmp;
 use chrono::{DateTime, Duration, Utc};
+use std::cmp;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct FSRS {
