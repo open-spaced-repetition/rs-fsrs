@@ -2,6 +2,7 @@ use crate::models::Rating;
 use crate::models::Rating::{Again, Easy, Good, Hard};
 use crate::models::State::{Learning, New, Relearning, Review};
 use crate::models::*;
+use std::cmp;
 use chrono::{DateTime, Duration, Utc};
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -65,18 +66,21 @@ impl FSRS {
                 let mut good_interval = self.next_interval(&mut output_cards, Good).unwrap();
                 let mut easy_interval = self.next_interval(&mut output_cards, Easy).unwrap();
 
-                hard_interval = hard_interval.min(good_interval);
-                good_interval = good_interval.max(hard_interval + 1);
-                easy_interval = easy_interval.max(good_interval + 1);
+                hard_interval = cmp::min(hard_interval, good_interval);
+                good_interval = cmp::max(good_interval, hard_interval + 1);
+                easy_interval = cmp::max(good_interval + 1, easy_interval);
 
                 self.set_scheduled_days(&mut output_cards, Again, 0);
                 self.set_due(&mut output_cards, Again, Duration::minutes(5));
+
+                self.set_scheduled_days(&mut output_cards, Hard, hard_interval);
+                self.set_due(&mut output_cards, Hard, Duration::days(hard_interval));
 
                 self.set_scheduled_days(&mut output_cards, Good, good_interval);
                 self.set_due(&mut output_cards, Good, Duration::days(good_interval));
 
                 self.set_scheduled_days(&mut output_cards, Easy, easy_interval);
-                self.set_due(&mut output_cards, Hard, Duration::days(easy_interval));
+                self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
         }
         self.save_logs(&mut output_cards);
@@ -183,6 +187,6 @@ impl FSRS {
     }
 
     fn mean_reversion(&self, initial: f32, current: f32) -> f32 {
-        self.params.w[7] * initial + (1.0 - self.params.w[7]) * current
+        return self.params.w[7] * initial + (1.0 - self.params.w[7]) * current;
     }
 }
