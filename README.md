@@ -5,6 +5,7 @@
 A rust implementation of FSRS.
 
 Quickstart:
+
 ```rust
 use chrono::Utc;
 use fsrs::{FSRS, Card, Rating::Easy};
@@ -25,9 +26,10 @@ fn main() {
 
 run
 
-```
+```sh
 cargo fmt
 cargo clippy -- -Dwarnings
+cargo clippy -- -D clippy::nursery
 cargo test --release
 ```
 
