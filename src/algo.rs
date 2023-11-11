@@ -126,9 +126,7 @@ impl FSRS {
     ) -> Result<i64, String> {
         if let Some(card) = output_cards.cards.get_mut(&rating) {
             let new_interval = card.stability * 9.0 * (1.0 / self.params.request_retention - 1.0);
-            return Ok((new_interval.round() as i64)
-                .max(1)
-                .min(self.params.maximum_interval as i64));
+            return Ok((new_interval.round() as i64).clamp(1, self.params.maximum_interval as i64));
         }
         Err("Failed to retrieve card from output_cards".to_string())
     }
