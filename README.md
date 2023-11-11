@@ -1,4 +1,7 @@
 # rs-fsrs
+
+![](https://github.com/open-spaced-repetition/rs-fsrs/actions/workflows/check.yml/badge.svg)
+
 A rust implementation of FSRS.
 
 Quickstart:
