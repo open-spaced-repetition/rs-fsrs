@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
-#[derive(Clone, Copy, PartialEq, Debug, Default,Eq)]
+#[derive(Clone, Copy, PartialEq, Debug, Default, Eq)]
 pub enum State {
     #[default]
     New = 0,
@@ -49,7 +49,7 @@ impl ScheduledCards {
     }
 }
 
-#[derive(Clone, Debug, PartialEq,Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ReviewLog {
     pub rating: Rating,
     pub elapsed_days: i64,
