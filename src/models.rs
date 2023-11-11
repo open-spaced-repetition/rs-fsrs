@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 
-#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default,Eq)]
 pub enum State {
     #[default]
     New = 0,
@@ -49,7 +49,7 @@ impl ScheduledCards {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq,Eq)]
 pub struct ReviewLog {
     pub rating: Rating,
     pub elapsed_days: i64,
@@ -67,7 +67,7 @@ pub struct Parameters {
 
 impl Default for Parameters {
     fn default() -> Self {
-        Parameters {
+        Self {
             request_retention: 0.9,
             maximum_interval: 36500,
             w: [
@@ -103,7 +103,7 @@ impl Card {
     }
 
     pub fn get_retrievability(&self) -> f32 {
-        (1.0 + self.elapsed_days as f32 / (9.0 * self.stability)).powf(-1.0)
+        (1.0 + self.elapsed_days as f32 / (9.0 * self.stability)).powi(-1)
     }
 
     pub fn save_log(&mut self, rating: Rating) {

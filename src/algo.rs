@@ -11,7 +11,7 @@ pub struct FSRS {
 }
 
 impl FSRS {
-    pub fn new(params: Parameters) -> Self {
+    pub const fn new(params: Parameters) -> Self {
         Self { params }
     }
 
@@ -112,8 +112,7 @@ impl FSRS {
             let rating_int: i32 = *rating as i32;
             if let Some(card) = output_cards.cards.get_mut(rating) {
                 card.difficulty = (self.params.w[4] - self.params.w[5] * (rating_int as f32 - 3.0))
-                    .max(1.0)
-                    .min(10.0);
+                    .clamp(1.0, 10.0);
                 card.stability = self.params.w[(rating_int - 1) as usize].max(0.1);
             }
         }
@@ -180,7 +179,7 @@ impl FSRS {
                 let next_difficulty =
                     card.difficulty - (self.params.w[6] * (rating_int as f32 - 3.0));
                 let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
-                card.difficulty = mean_reversion.max(1.0).min(10.0);
+                card.difficulty = mean_reversion.clamp(1.0, 10.0);
                 output_cards.cards.insert(*rating, card);
             }
         }
