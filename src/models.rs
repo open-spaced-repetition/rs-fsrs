@@ -36,9 +36,10 @@ impl ScheduledCards {
         let mut cards = HashMap::new();
         for rating in Rating::iter() {
             cards.insert(*rating, card.clone());
-            if let Some(card) = cards.get_mut(rating) {
-                card.update_state(*rating);
-            }
+            let Some(card) = cards.get_mut(rating) else {
+                continue;
+            };
+            card.update_state(*rating);
         }
 
         Self { cards, now }

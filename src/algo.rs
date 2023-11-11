@@ -19,11 +19,10 @@ impl FSRS {
         card.reps += 1;
         card.previous_state = card.state;
 
-        if card.state == New {
-            card.elapsed_days = 0;
-        } else {
-            card.elapsed_days = (now - card.last_review).num_days();
-        }
+        card.elapsed_days = match card.state {
+            New => 0,
+            _ => (now - card.last_review).num_days(),
+        };
         card.last_review = now;
 
         let mut output_cards = ScheduledCards::new(&card, now);
@@ -88,34 +87,38 @@ impl FSRS {
     }
 
     fn set_due(&self, output_cards: &mut ScheduledCards, rating: Rating, duration: Duration) {
-        if let Some(card) = output_cards.cards.get_mut(&rating) {
-            card.due = output_cards.now + duration;
-        }
+        let Some(card) = output_cards.cards.get_mut(&rating) else {
+            return;
+        };
+        card.due = output_cards.now + duration;
     }
 
     fn set_scheduled_days(&self, output_cards: &mut ScheduledCards, rating: Rating, interval: i64) {
-        if let Some(card) = output_cards.cards.get_mut(&rating) {
-            card.scheduled_days = interval;
-        }
+        let Some(card) = output_cards.cards.get_mut(&rating) else {
+            return;
+        };
+        card.scheduled_days = interval;
     }
 
     fn save_logs(&self, output_cards: &mut ScheduledCards) {
         for rating in Rating::iter() {
-            if let Some(card) = output_cards.cards.get_mut(rating) {
-                card.save_log(*rating);
-            }
+            let Some(card) = output_cards.cards.get_mut(rating) else {
+                continue;
+            };
+            card.save_log(*rating);
         }
     }
 
     fn init_difficulty_stability(&self, output_cards: &mut ScheduledCards) {
         for rating in Rating::iter() {
             let rating_int: i32 = *rating as i32;
-            if let Some(card) = output_cards.cards.get_mut(rating) {
-                card.difficulty = self.params.w[5]
-                    .mul_add(-(rating_int as f32 - 3.0), self.params.w[4])
-                    .clamp(1.0, 10.0);
-                card.stability = self.params.w[(rating_int - 1) as usize].max(0.1);
-            }
+            let Some(card) = output_cards.cards.get_mut(rating) else {
+                continue;
+            };
+            card.difficulty = self.params.w[5]
+                .mul_add(-(rating_int as f32 - 3.0), self.params.w[4])
+                .clamp(1.0, 10.0);
+            card.stability = self.params.w[(rating_int - 1) as usize].max(0.1);
         }
     }
 
@@ -124,11 +127,11 @@ impl FSRS {
         output_cards: &mut ScheduledCards,
         rating: Rating,
     ) -> Result<i64, String> {
-        if let Some(card) = output_cards.cards.get_mut(&rating) {
-            let new_interval = card.stability * 9.0 * (1.0 / self.params.request_retention - 1.0);
-            return Ok((new_interval.round() as i64).clamp(1, self.params.maximum_interval as i64));
-        }
-        Err("Failed to retrieve card from output_cards".to_string())
+        let Some(card) = output_cards.cards.get_mut(&rating) else {
+            return Err("Failed to retrieve card from output_cards".to_string());
+        };
+        let new_interval = card.stability * 9.0 * (1.0 / self.params.request_retention - 1.0);
+        Ok((new_interval.round() as i64).clamp(1, self.params.maximum_interval as i64))
     }
 
     fn next_stability(&self, output_cards: &mut ScheduledCards) {
@@ -148,38 +151,40 @@ impl FSRS {
             _ => 1.0,
         };
 
-        if let Some(card) = output_cards.cards.get_mut(&rating) {
-            let retrievability = card.get_retrievability();
-
-            card.stability = card.stability
-                * (((self.params.w[8]).exp()
-                    * (11.0 - card.difficulty)
-                    * card.stability.powf(-self.params.w[9])
-                    * (((1.0 - retrievability) * self.params.w[10]).exp_m1()))
-                .mul_add(modifier, 1.0));
-        }
+        let Some(card) = output_cards.cards.get_mut(&rating) else {
+            return;
+        };
+        let retrievability = card.get_retrievability();
+        card.stability = card.stability
+            * (((self.params.w[8]).exp()
+                * (11.0 - card.difficulty)
+                * card.stability.powf(-self.params.w[9])
+                * (((1.0 - retrievability) * self.params.w[10]).exp_m1()))
+            .mul_add(modifier, 1.0));
     }
 
     fn next_forget_stability(&self, output_cards: &mut ScheduledCards) {
-        if let Some(card) = output_cards.cards.get_mut(&Again) {
-            let retrievability = card.get_retrievability();
-            card.stability = self.params.w[11]
-                * card.difficulty.powf(-self.params.w[12])
-                * ((card.stability + 1.0).powf(self.params.w[13]) - 1.0)
-                * f32::exp((1.0 - retrievability) * self.params.w[14])
-        }
+        let Some(card) = output_cards.cards.get_mut(&Again) else {
+            return;
+        };
+        let retrievability = card.get_retrievability();
+        card.stability = self.params.w[11]
+            * card.difficulty.powf(-self.params.w[12])
+            * ((card.stability + 1.0).powf(self.params.w[13]) - 1.0)
+            * f32::exp((1.0 - retrievability) * self.params.w[14])
     }
 
     fn next_difficulty(&self, output_cards: &mut ScheduledCards) {
         for rating in Rating::iter() {
             let rating_int = *rating as i32;
-            if let Some(mut card) = output_cards.cards.remove(rating) {
-                let next_difficulty =
-                    self.params.w[6].mul_add(-(rating_int as f32 - 3.0), card.difficulty);
-                let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
-                card.difficulty = mean_reversion.clamp(1.0, 10.0);
-                output_cards.cards.insert(*rating, card);
-            }
+            let Some(mut card) = output_cards.cards.remove(rating) else {
+                continue;
+            };
+            let next_difficulty =
+                self.params.w[6].mul_add(-(rating_int as f32 - 3.0), card.difficulty);
+            let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
+            card.difficulty = mean_reversion.clamp(1.0, 10.0);
+            output_cards.cards.insert(*rating, card);
         }
     }
 
