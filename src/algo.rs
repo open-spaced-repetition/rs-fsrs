@@ -152,12 +152,11 @@ impl FSRS {
             let retrievability = card.get_retrievability();
 
             card.stability = card.stability
-                * (1.0
-                    + f32::exp(self.params.w[8])
-                        * (11.0 - card.difficulty)
-                        * card.stability.powf(-self.params.w[9])
-                        * (f32::exp((1.0 - retrievability) * self.params.w[10]) - 1.0)
-                        * modifier);
+                * (((self.params.w[8]).exp()
+                    * (11.0 - card.difficulty)
+                    * card.stability.powf(-self.params.w[9])
+                    * (((1.0 - retrievability) * self.params.w[10]).exp_m1()))
+                .mul_add(modifier, 1.0));
         }
     }
 
