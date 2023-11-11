@@ -11,7 +11,7 @@ pub struct FSRS {
 }
 
 impl FSRS {
-    pub fn new(params: Parameters) -> Self {
+    pub const fn new(params: Parameters) -> Self {
         Self { params }
     }
 
@@ -111,9 +111,9 @@ impl FSRS {
         for rating in Rating::iter() {
             let rating_int: i32 = *rating as i32;
             if let Some(card) = output_cards.cards.get_mut(rating) {
-                card.difficulty = (self.params.w[4] - self.params.w[5] * (rating_int as f32 - 3.0))
-                    .max(1.0)
-                    .min(10.0);
+                card.difficulty = self.params.w[5]
+                    .mul_add(-(rating_int as f32 - 3.0), self.params.w[4])
+                    .clamp(1.0, 10.0);
                 card.stability = self.params.w[(rating_int - 1) as usize].max(0.1);
             }
         }
@@ -126,9 +126,7 @@ impl FSRS {
     ) -> Result<i64, String> {
         if let Some(card) = output_cards.cards.get_mut(&rating) {
             let new_interval = card.stability * 9.0 * (1.0 / self.params.request_retention - 1.0);
-            return Ok((new_interval.round() as i64)
-                .max(1)
-                .min(self.params.maximum_interval as i64));
+            return Ok((new_interval.round() as i64).clamp(1, self.params.maximum_interval as i64));
         }
         Err("Failed to retrieve card from output_cards".to_string())
     }
@@ -154,12 +152,11 @@ impl FSRS {
             let retrievability = card.get_retrievability();
 
             card.stability = card.stability
-                * (1.0
-                    + f32::exp(self.params.w[8])
-                        * (11.0 - card.difficulty)
-                        * card.stability.powf(-self.params.w[9])
-                        * (f32::exp((1.0 - retrievability) * self.params.w[10]) - 1.0)
-                        * modifier);
+                * (((self.params.w[8]).exp()
+                    * (11.0 - card.difficulty)
+                    * card.stability.powf(-self.params.w[9])
+                    * (((1.0 - retrievability) * self.params.w[10]).exp_m1()))
+                .mul_add(modifier, 1.0));
         }
     }
 
@@ -178,15 +175,15 @@ impl FSRS {
             let rating_int = *rating as i32;
             if let Some(mut card) = output_cards.cards.remove(rating) {
                 let next_difficulty =
-                    card.difficulty - (self.params.w[6] * (rating_int as f32 - 3.0));
+                    self.params.w[6].mul_add(-(rating_int as f32 - 3.0), card.difficulty);
                 let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
-                card.difficulty = mean_reversion.max(1.0).min(10.0);
+                card.difficulty = mean_reversion.clamp(1.0, 10.0);
                 output_cards.cards.insert(*rating, card);
             }
         }
     }
 
     fn mean_reversion(&self, initial: f32, current: f32) -> f32 {
-        self.params.w[7] * initial + (1.0 - self.params.w[7]) * current
+        self.params.w[7].mul_add(initial, (1.0 - self.params.w[7]) * current)
     }
 }
