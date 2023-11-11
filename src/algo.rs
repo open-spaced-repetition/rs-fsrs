@@ -111,7 +111,8 @@ impl FSRS {
         for rating in Rating::iter() {
             let rating_int: i32 = *rating as i32;
             if let Some(card) = output_cards.cards.get_mut(rating) {
-                card.difficulty = (self.params.w[4] - self.params.w[5] * (rating_int as f32 - 3.0))
+                card.difficulty = self.params.w[5]
+                    .mul_add(-(rating_int as f32 - 3.0), self.params.w[4])
                     .clamp(1.0, 10.0);
                 card.stability = self.params.w[(rating_int - 1) as usize].max(0.1);
             }
@@ -177,7 +178,7 @@ impl FSRS {
             let rating_int = *rating as i32;
             if let Some(mut card) = output_cards.cards.remove(rating) {
                 let next_difficulty =
-                    card.difficulty - (self.params.w[6] * (rating_int as f32 - 3.0));
+                    self.params.w[6].mul_add(-(rating_int as f32 - 3.0), card.difficulty);
                 let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
                 card.difficulty = mean_reversion.clamp(1.0, 10.0);
                 output_cards.cards.insert(*rating, card);
