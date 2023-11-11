@@ -185,6 +185,6 @@ impl FSRS {
     }
 
     fn mean_reversion(&self, initial: f32, current: f32) -> f32 {
-        self.params.w[7] * initial + (1.0 - self.params.w[7]) * current
+        self.params.w[7].mul_add(initial, (1.0 - self.params.w[7]) * current)
     }
 }
