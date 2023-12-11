@@ -58,8 +58,8 @@ impl FSRS {
                 self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
             Review => {
-                self.next_difficulty(&mut output_cards);
                 self.next_stability(&mut output_cards);
+                self.next_difficulty(&mut output_cards);
 
                 let mut hard_interval = self.next_interval(&mut output_cards, Hard).unwrap();
                 let mut good_interval = self.next_interval(&mut output_cards, Good).unwrap();

@@ -120,7 +120,6 @@ impl Card {
     pub fn update_state(&mut self, rating: Rating) {
         match self.state {
             State::New => match rating {
-                Rating::Again => self.lapses += 1,
                 Rating::Easy => self.state = State::Review,
                 _ => self.state = State::Learning,
             },

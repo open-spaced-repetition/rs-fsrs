@@ -2,7 +2,7 @@
 
 ![](https://github.com/open-spaced-repetition/rs-fsrs/actions/workflows/check.yml/badge.svg)
 
-A rust implementation of FSRS.
+A rust implementation of FSRS scheduler.
 
 Quickstart:
 
@@ -32,6 +32,10 @@ cargo clippy -- -Dwarnings
 cargo clippy -- -D clippy::nursery
 cargo test --release
 ```
+
+## Other implementation
+
+[fsrs-rs](https://github.com/open-spaced-repetition/fsrs-rs) contains a Rust API for training FSRS parameters, and for using them to schedule cards.
 
 ## LICENSE
 
