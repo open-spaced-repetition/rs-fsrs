@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Clone, Copy, PartialEq, Debug, Default, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Debug, Default, Eq)]
 pub enum State {
     #[default]
     New = 0,
@@ -10,7 +11,7 @@ pub enum State {
     Relearning = 3,
 }
 
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub enum Rating {
     Again = 1,
     Hard = 2,
@@ -50,7 +51,7 @@ impl ScheduledCards {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ReviewLog {
     pub rating: Rating,
     pub elapsed_days: i64,
@@ -79,7 +80,7 @@ impl Default for Parameters {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Card {
     pub due: DateTime<Utc>,
     pub stability: f32,
