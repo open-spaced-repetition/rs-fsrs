@@ -1,9 +1,10 @@
 use crate::models::Rating;
 use crate::models::Rating::{Again, Easy, Good, Hard};
 use crate::models::State::{Learning, New, Relearning, Review};
-use crate::models::*;
+use crate::models::{Card, Parameters, ScheduledCards};
 use chrono::{DateTime, Duration, Utc};
 use std::cmp;
+use std::error::Error;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct FSRS {
@@ -15,7 +16,11 @@ impl FSRS {
         Self { params }
     }
 
-    pub fn schedule(&self, mut card: Card, now: DateTime<Utc>) -> ScheduledCards {
+    pub fn schedule(
+        &self,
+        mut card: Card,
+        now: DateTime<Utc>,
+    ) -> Result<ScheduledCards, Box<dyn Error>> {
         card.reps += 1;
         card.previous_state = card.state;
 
@@ -31,76 +36,76 @@ impl FSRS {
             New => {
                 self.init_difficulty_stability(&mut output_cards);
 
-                self.set_due(&mut output_cards, Again, Duration::minutes(1));
-                self.set_due(&mut output_cards, Hard, Duration::minutes(5));
-                self.set_due(&mut output_cards, Good, Duration::minutes(10));
+                Self::set_due(&mut output_cards, Again, Duration::minutes(1));
+                Self::set_due(&mut output_cards, Hard, Duration::minutes(5));
+                Self::set_due(&mut output_cards, Good, Duration::minutes(10));
 
-                let easy_interval = self.next_interval(&mut output_cards, Easy).unwrap();
-                self.set_scheduled_days(&mut output_cards, Easy, easy_interval);
-                self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
+                let easy_interval = self.next_interval(&mut output_cards, Easy)?;
+                Self::set_scheduled_days(&mut output_cards, Easy, easy_interval);
+                Self::set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
             Learning | Relearning => {
-                self.set_scheduled_days(&mut output_cards, Again, 0);
-                self.set_due(&mut output_cards, Again, Duration::minutes(5));
+                Self::set_scheduled_days(&mut output_cards, Again, 0);
+                Self::set_due(&mut output_cards, Again, Duration::minutes(5));
 
-                self.set_scheduled_days(&mut output_cards, Hard, 0);
-                self.set_due(&mut output_cards, Hard, Duration::minutes(10));
+                Self::set_scheduled_days(&mut output_cards, Hard, 0);
+                Self::set_due(&mut output_cards, Hard, Duration::minutes(10));
 
-                let good_interval = self.next_interval(&mut output_cards, Good).unwrap();
+                let good_interval = self.next_interval(&mut output_cards, Good)?;
 
                 let easy_interval =
-                    (good_interval + 1).max(self.next_interval(&mut output_cards, Easy).unwrap());
+                    (good_interval + 1).max(self.next_interval(&mut output_cards, Easy)?);
 
-                self.set_scheduled_days(&mut output_cards, Good, good_interval);
-                self.set_due(&mut output_cards, Good, Duration::days(good_interval));
+                Self::set_scheduled_days(&mut output_cards, Good, good_interval);
+                Self::set_due(&mut output_cards, Good, Duration::days(good_interval));
 
-                self.set_scheduled_days(&mut output_cards, Easy, easy_interval);
-                self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
+                Self::set_scheduled_days(&mut output_cards, Easy, easy_interval);
+                Self::set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
             Review => {
                 self.next_stability(&mut output_cards);
                 self.next_difficulty(&mut output_cards);
 
-                let mut hard_interval = self.next_interval(&mut output_cards, Hard).unwrap();
-                let mut good_interval = self.next_interval(&mut output_cards, Good).unwrap();
-                let mut easy_interval = self.next_interval(&mut output_cards, Easy).unwrap();
+                let mut hard_interval = self.next_interval(&mut output_cards, Hard)?;
+                let mut good_interval = self.next_interval(&mut output_cards, Good)?;
+                let mut easy_interval = self.next_interval(&mut output_cards, Easy)?;
 
                 hard_interval = cmp::min(hard_interval, good_interval);
                 good_interval = cmp::max(good_interval, hard_interval + 1);
                 easy_interval = cmp::max(good_interval + 1, easy_interval);
 
-                self.set_scheduled_days(&mut output_cards, Again, 0);
-                self.set_due(&mut output_cards, Again, Duration::minutes(5));
+                Self::set_scheduled_days(&mut output_cards, Again, 0);
+                Self::set_due(&mut output_cards, Again, Duration::minutes(5));
 
-                self.set_scheduled_days(&mut output_cards, Hard, hard_interval);
-                self.set_due(&mut output_cards, Hard, Duration::days(hard_interval));
+                Self::set_scheduled_days(&mut output_cards, Hard, hard_interval);
+                Self::set_due(&mut output_cards, Hard, Duration::days(hard_interval));
 
-                self.set_scheduled_days(&mut output_cards, Good, good_interval);
-                self.set_due(&mut output_cards, Good, Duration::days(good_interval));
+                Self::set_scheduled_days(&mut output_cards, Good, good_interval);
+                Self::set_due(&mut output_cards, Good, Duration::days(good_interval));
 
-                self.set_scheduled_days(&mut output_cards, Easy, easy_interval);
-                self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
+                Self::set_scheduled_days(&mut output_cards, Easy, easy_interval);
+                Self::set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
         }
-        self.save_logs(&mut output_cards);
-        output_cards
+        Self::save_logs(&mut output_cards);
+        Ok(output_cards)
     }
 
-    fn set_due(&self, output_cards: &mut ScheduledCards, rating: Rating, duration: Duration) {
+    fn set_due(output_cards: &mut ScheduledCards, rating: Rating, duration: Duration) {
         let Some(card) = output_cards.cards.get_mut(&rating) else {
             return;
         };
         card.due = output_cards.now + duration;
     }
 
-    fn set_scheduled_days(&self, output_cards: &mut ScheduledCards, rating: Rating, interval: i64) {
+    fn set_scheduled_days(output_cards: &mut ScheduledCards, rating: Rating, interval: i64) {
         let Some(card) = output_cards.cards.get_mut(&rating) else {
             return;
         };
         card.scheduled_days = interval;
     }
 
-    fn save_logs(&self, output_cards: &mut ScheduledCards) {
+    fn save_logs(output_cards: &mut ScheduledCards) {
         for rating in Rating::iter() {
             let Some(card) = output_cards.cards.get_mut(rating) else {
                 continue;
@@ -116,7 +121,7 @@ impl FSRS {
                 continue;
             };
             card.difficulty = self.params.w[5]
-                .mul_add(-(rating_int as f32 - 3.0), self.params.w[4])
+                .mul_add(-(rating_int - 3) as f32, self.params.w[4])
                 .clamp(1.0, 10.0);
             card.stability = self.params.w[(rating_int - 1) as usize].max(0.1);
         }
@@ -131,7 +136,7 @@ impl FSRS {
             return Err("Failed to retrieve card from output_cards".to_string());
         };
         let new_interval = card.stability * 9.0 * (1.0 / self.params.request_retention - 1.0);
-        Ok((new_interval.round() as i64).clamp(1, self.params.maximum_interval as i64))
+        Ok((new_interval.round() as i64).clamp(1, i64::from(self.params.maximum_interval)))
     }
 
     fn next_stability(&self, output_cards: &mut ScheduledCards) {
@@ -156,11 +161,11 @@ impl FSRS {
         };
         let retrievability = card.get_retrievability();
         card.stability = card.stability
-            * (((self.params.w[8]).exp()
+            * (self.params.w[8].exp()
                 * (11.0 - card.difficulty)
                 * card.stability.powf(-self.params.w[9])
-                * (((1.0 - retrievability) * self.params.w[10]).exp_m1()))
-            .mul_add(modifier, 1.0));
+                * ((1.0 - retrievability) * self.params.w[10]).exp_m1())
+            .mul_add(modifier, 1.0);
     }
 
     fn next_forget_stability(&self, output_cards: &mut ScheduledCards) {
@@ -171,7 +176,7 @@ impl FSRS {
         card.stability = self.params.w[11]
             * card.difficulty.powf(-self.params.w[12])
             * ((card.stability + 1.0).powf(self.params.w[13]) - 1.0)
-            * f32::exp((1.0 - retrievability) * self.params.w[14])
+            * f32::exp((1.0 - retrievability) * self.params.w[14]);
     }
 
     fn next_difficulty(&self, output_cards: &mut ScheduledCards) {
@@ -181,7 +186,7 @@ impl FSRS {
                 continue;
             };
             let next_difficulty =
-                self.params.w[6].mul_add(-(rating_int as f32 - 3.0), card.difficulty);
+                self.params.w[6].mul_add(-(rating_int - 3) as f32, card.difficulty);
             let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
             card.difficulty = mean_reversion.clamp(1.0, 10.0);
             output_cards.cards.insert(*rating, card);

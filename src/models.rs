@@ -110,7 +110,7 @@ impl Card {
     }
 
     pub fn get_retrievability(&self) -> f32 {
-        (1.0 + self.elapsed_days as f32 / (9.0 * self.stability)).powi(-1)
+        (1.0 + (self.elapsed_days as f32) / (9.0 * self.stability)).powi(-1)
     }
 
     pub fn save_log(&mut self, rating: Rating) {
@@ -127,9 +127,11 @@ impl Card {
         match (self.state, rating) {
             (State::New, Rating::Easy)
             | (State::Learning | State::Relearning, Rating::Good | Rating::Easy) => {
-                self.state = State::Review
+                self.state = State::Review;
             }
-            (State::New, _) => self.state = State::Learning,
+            (State::New, _) => {
+                self.state = State::Learning;
+            }
             (State::Review, Rating::Again) => {
                 self.lapses += 1;
                 self.state = State::Relearning;

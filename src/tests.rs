@@ -51,7 +51,7 @@ fn test_interval() {
     let mut interval_history = vec![];
 
     for rating in TEST_RATINGS.iter() {
-        let scheduled_cards = fsrs.schedule(card, now);
+        let scheduled_cards = fsrs.schedule(card, now).unwrap();
         card = scheduled_cards.select_card(*rating);
 
         interval_history.push(card.scheduled_days);
@@ -75,7 +75,7 @@ fn test_state() {
 
     for rating in TEST_RATINGS.iter() {
         state_history.push(card.state);
-        let scheduled_cards = fsrs.schedule(card, now);
+        let scheduled_cards = fsrs.schedule(card, now).unwrap();
 
         card = scheduled_cards.select_card(*rating);
         now = card.due;
@@ -103,7 +103,7 @@ fn test_logs() {
 
     for rating in TEST_RATINGS.iter() {
         state_history.push(card.state);
-        let scheduled_cards = fsrs.schedule(card, now);
+        let scheduled_cards = fsrs.schedule(card, now).unwrap();
 
         card = scheduled_cards.select_card(*rating);
         log_history.push(card.clone().log.unwrap());
