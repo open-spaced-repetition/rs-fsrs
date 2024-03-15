@@ -4,6 +4,14 @@
 
 A rust implementation of FSRS scheduler.
 
+Install:
+
+```toml
+[dependencies]
+fsrs = { git = "https://github.com/open-spaced-repetition/rs-fsrs" }
+chrono = { version = "0.4.23", features = ["serde"] }
+```
+
 Quickstart:
 
 ```rust
