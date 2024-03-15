@@ -122,6 +122,7 @@ impl FSRS {
         }
     }
 
+    #[allow(clippy::suboptimal_flops)]
     fn next_interval(
         &self,
         output_cards: &mut ScheduledCards,
@@ -130,7 +131,8 @@ impl FSRS {
         let Some(card) = output_cards.cards.get_mut(&rating) else {
             return Err("Failed to retrieve card from output_cards".to_string());
         };
-        let new_interval = card.stability * 9.0 * (1.0 / self.params.request_retention - 1.0);
+        let new_interval =
+            card.stability / FACTOR * (self.params.request_retention.powf(1.0 / DECAY) - 1.0);
         Ok((new_interval.round() as i64).clamp(1, self.params.maximum_interval as i64))
     }
 

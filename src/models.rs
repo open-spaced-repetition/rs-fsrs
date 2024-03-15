@@ -71,14 +71,18 @@ pub struct Parameters {
     pub w: [f32; 17],
 }
 
+pub const DECAY: f32 = -0.5;
+/// (9/10) ^ (1 / DECAY) - 1
+pub const FACTOR: f32 = 19f32 / 81f32;
+
 impl Default for Parameters {
     fn default() -> Self {
         Self {
             request_retention: 0.9,
             maximum_interval: 36500,
             w: [
-                0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34,
-                1.26, 0.29, 2.61,
+                0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629, 0.1342,
+                1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
             ],
         }
     }
@@ -110,7 +114,7 @@ impl Card {
     }
 
     pub fn get_retrievability(&self) -> f32 {
-        (1.0 + self.elapsed_days as f32 / (9.0 * self.stability)).powi(-1)
+        (1.0 + FACTOR * self.elapsed_days as f32 / self.stability).powf(DECAY)
     }
 
     pub fn save_log(&mut self, rating: Rating) {
