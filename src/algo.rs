@@ -122,6 +122,7 @@ impl FSRS {
         }
     }
 
+    #[allow(clippy::suboptimal_flops)]
     fn next_interval(
         &self,
         output_cards: &mut ScheduledCards,

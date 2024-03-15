@@ -71,9 +71,9 @@ pub struct Parameters {
     pub w: [f32; 17],
 }
 
-pub(crate) const DECAY: f32 = -0.5;
+pub const DECAY: f32 = -0.5;
 /// (9/10) ^ (1 / DECAY) - 1
-pub(crate) const FACTOR: f32 = 19f32 / 81f32;
+pub const FACTOR: f32 = 19f32 / 81f32;
 
 impl Default for Parameters {
     fn default() -> Self {
