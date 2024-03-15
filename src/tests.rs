@@ -4,7 +4,7 @@ use {
         algo::FSRS,
         models::{Card, Parameters, Rating, State},
     },
-    chrono::{DateTime, TimeZone, Utc, Days},
+    chrono::{DateTime, Days, TimeZone, Utc},
 };
 
 #[cfg(test)]
