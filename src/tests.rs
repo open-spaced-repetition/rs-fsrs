@@ -115,6 +115,6 @@ fn test_memo_state() {
         },
     );
     card = scheduled_cards.select_card(Rating::Good);
-    assert_eq!(card.stability, 43.05542);
+    assert!((card.stability - 43.05542).abs() < f32::EPSILON);
     assert_eq!(card.difficulty, 7.7609);
 }
