@@ -25,9 +25,9 @@ static TEST_RATINGS: [Rating; 13] = [
 ];
 
 #[cfg(test)]
-static WEIGHTS: [f32; 17] = [
-    1.0171, 1.8296, 4.4145, 10.9355, 5.0965, 1.3322, 1.017, 0.0, 1.6243, 0.1369, 1.0321, 2.1866,
-    0.0661, 0.336, 1.7766, 0.1693, 2.9244,
+static WEIGHTS: [f32; 19] = [
+    0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597, 0.1712, 1.1178,
+    2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891, 0.6468,
 ];
 
 #[cfg(test)]
@@ -55,7 +55,7 @@ fn test_interval() {
         interval_history.push(card.scheduled_days);
         now = card.due;
     }
-    let expected = [0, 4, 15, 49, 143, 379, 0, 0, 15, 37, 85, 184, 376];
+    let expected = [0, 4, 17, 62, 198, 563, 0, 0, 9, 27, 74, 190, 457];
     assert_eq!(interval_history, expected);
 }
 
@@ -115,6 +115,7 @@ fn test_memo_state() {
         },
     );
     card = scheduled_cards.select_card(Rating::Good);
-    assert!((card.stability - 43.05542).abs() < f32::EPSILON * 100f32);
-    assert_eq!(card.difficulty, 7.7609);
+    assert_eq!(card.stability, 71.4554);
+    // card.difficulty = 5.0976353
+    assert!((card.difficulty - 5.0976).abs() < f32::EPSILON * 1000f32)
 }
