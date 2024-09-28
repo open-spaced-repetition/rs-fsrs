@@ -40,6 +40,9 @@ impl FSRS {
                 self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
             Learning | Relearning => {
+                self.next_stability(&mut output_cards, card.state);
+                self.next_difficulty(&mut output_cards);
+
                 self.set_scheduled_days(&mut output_cards, Again, 0);
                 self.set_due(&mut output_cards, Again, Duration::minutes(5));
 
@@ -58,7 +61,7 @@ impl FSRS {
                 self.set_due(&mut output_cards, Easy, Duration::days(easy_interval));
             }
             Review => {
-                self.next_stability(&mut output_cards);
+                self.next_stability(&mut output_cards, card.state);
                 self.next_difficulty(&mut output_cards);
 
                 let mut hard_interval = self.next_interval(&mut output_cards, Hard).unwrap();
@@ -111,15 +114,24 @@ impl FSRS {
 
     fn init_difficulty_stability(&self, output_cards: &mut ScheduledCards) {
         for rating in Rating::iter() {
-            let rating_int: i32 = *rating as i32;
             let Some(card) = output_cards.cards.get_mut(rating) else {
                 continue;
             };
-            card.difficulty = self.params.w[5]
-                .mul_add(-(rating_int as f32 - 3.0), self.params.w[4])
-                .clamp(1.0, 10.0);
-            card.stability = self.params.w[(rating_int - 1) as usize].max(0.1);
+            card.difficulty = self.init_difficulty(*rating);
+            card.stability = self.init_stability(*rating);
         }
+    }
+
+    fn init_difficulty(&self, rating: Rating) -> f32 {
+        let rating_int: i32 = rating as i32;
+
+        (self.params.w[4] - f32::exp(self.params.w[5] * (rating_int as f32 - 1.0)) + 1.0)
+            .clamp(1.0, 10.0)
+    }
+
+    fn init_stability(&self, rating: Rating) -> f32 {
+        let rating_int: i32 = rating as i32;
+        self.params.w[(rating_int - 1) as usize].max(0.1)
     }
 
     #[allow(clippy::suboptimal_flops)]
@@ -136,12 +148,16 @@ impl FSRS {
         Ok((new_interval.round() as i64).clamp(1, self.params.maximum_interval as i64))
     }
 
-    fn next_stability(&self, output_cards: &mut ScheduledCards) {
-        for rating in Rating::iter() {
-            if rating == &Again {
-                self.next_forget_stability(output_cards);
-            } else {
-                self.next_recall_stability(output_cards, *rating);
+    fn next_stability(&self, output_cards: &mut ScheduledCards, state: State) {
+        if state == Learning || state == Relearning {
+            self.short_term_stability(output_cards)
+        } else if state == Review {
+            for rating in Rating::iter() {
+                if rating == &Again {
+                    self.next_forget_stability(output_cards);
+                } else {
+                    self.next_recall_stability(output_cards, *rating);
+                }
             }
         }
     }
@@ -184,7 +200,7 @@ impl FSRS {
             };
             let next_difficulty =
                 self.params.w[6].mul_add(-(rating_int as f32 - 3.0), card.difficulty);
-            let mean_reversion = self.mean_reversion(self.params.w[4], next_difficulty);
+            let mean_reversion = self.mean_reversion(self.init_difficulty(Easy), next_difficulty);
             card.difficulty = mean_reversion.clamp(1.0, 10.0);
             output_cards.cards.insert(*rating, card);
         }
@@ -192,5 +208,16 @@ impl FSRS {
 
     fn mean_reversion(&self, initial: f32, current: f32) -> f32 {
         self.params.w[7].mul_add(initial, (1.0 - self.params.w[7]) * current)
+    }
+
+    fn short_term_stability(&self, output_cards: &mut ScheduledCards) {
+        for rating in Rating::iter() {
+            let rating_int = *rating as i32;
+            let Some(card) = output_cards.cards.get_mut(rating) else {
+                continue;
+            };
+            card.stability *=
+                f32::exp(self.params.w[17] * (rating_int as f32 - 3.0 + self.params.w[18]));
+        }
     }
 }
