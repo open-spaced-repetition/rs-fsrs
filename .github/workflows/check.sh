@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eux -o pipefail
 
 cargo fmt --check || (
 	printf "
