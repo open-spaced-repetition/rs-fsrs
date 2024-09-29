@@ -3,6 +3,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::Parameters;
+
 #[derive(Clone, Copy, PartialEq, Debug, Default, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum State {
@@ -64,30 +66,6 @@ pub struct ReviewLog {
     pub reviewed_date: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Parameters {
-    pub request_retention: f32,
-    pub maximum_interval: i32,
-    pub w: [f32; 19],
-}
-
-pub const DECAY: f32 = -0.5;
-/// (9/10) ^ (1 / DECAY) - 1
-pub const FACTOR: f32 = 19f32 / 81f32;
-
-impl Default for Parameters {
-    fn default() -> Self {
-        Self {
-            request_retention: 0.9,
-            maximum_interval: 36500,
-            w: [
-                0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597, 0.1712,
-                1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891, 0.6468,
-            ],
-        }
-    }
-}
-
 #[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Card {
@@ -114,7 +92,7 @@ impl Card {
     }
 
     pub fn get_retrievability(&self) -> f32 {
-        (1.0 + FACTOR * self.elapsed_days as f32 / self.stability).powf(DECAY)
+        Parameters::forgeting_curve(self)
     }
 
     pub fn save_log(&mut self, rating: Rating) {

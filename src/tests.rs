@@ -2,7 +2,8 @@
 use {
     crate::{
         algo::FSRS,
-        models::{Card, Parameters, Rating, State},
+        models::{Card, Rating, State},
+        parameters::Parameters,
     },
     chrono::{DateTime, Days, TimeZone, Utc},
 };
