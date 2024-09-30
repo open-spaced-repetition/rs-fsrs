@@ -36,7 +36,6 @@ run
 
 ```sh
 cargo fmt
-cargo clippy -- -Dwarnings
 cargo clippy -- -D clippy::nursery
 cargo test --release
 ```
@@ -44,6 +43,13 @@ cargo test --release
 ## Other implementation
 
 [fsrs-rs](https://github.com/open-spaced-repetition/fsrs-rs) contains a Rust API for training FSRS parameters, and for using them to schedule cards.
+
+## Bindings
+
+- [c/cpp](https://github.com/open-spaced-repetition/rs-fsrs-c)
+- [python](https://github.com/open-spaced-repetition/rs-fsrs-py)
+- [java](https://github.com/open-spaced-repetition/rs-fsrs-java)
+- [nodejs](https://github.com/open-spaced-repetition/rs-fsrs-nodejs)
 
 ## LICENSE
 
