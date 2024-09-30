@@ -47,7 +47,7 @@ cargo test --release
 ## Bindings
 
 - [c/cpp](https://github.com/open-spaced-repetition/rs-fsrs-c)
-- [python](https://github.com/open-spaced-repetition/rs-fsrs-py)
+- [python](https://github.com/open-spaced-repetition/rs-fsrs-python)
 - [java](https://github.com/open-spaced-repetition/rs-fsrs-java)
 - [nodejs](https://github.com/open-spaced-repetition/rs-fsrs-nodejs)
 
