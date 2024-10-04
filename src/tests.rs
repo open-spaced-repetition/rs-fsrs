@@ -123,3 +123,50 @@ fn test_basic_scheduler_memo_state() {
     assert_eq!(round_float(card.stability, 4), 71.4554);
     assert_eq!(round_float(card.difficulty, 4), 5.0976);
 }
+
+#[test]
+fn test_long_term_scheduler() {
+    let params = Parameters {
+        w: WEIGHTS,
+        enable_short_term: false,
+        ..Default::default()
+    };
+
+    let fsrs = FSRS::new(params);
+    let mut card = Card::new();
+    let mut now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
+    let mut interval_history = vec![];
+    let mut stability_history = vec![];
+    let mut difficulty_history = vec![];
+
+    for rating in TEST_RATINGS.iter() {
+        let record = fsrs
+            .repeat(card.clone(), now)
+            .get(&rating)
+            .unwrap()
+            .to_owned();
+        let next = fsrs.next(card, now, *rating);
+
+        assert_eq!(record.card, next.card);
+
+        card = record.card;
+        interval_history.push(card.scheduled_days);
+        stability_history.push(round_float(card.stability, 4));
+        difficulty_history.push(round_float(card.difficulty, 4));
+        now = card.due;
+    }
+
+    let expected_interval = [3, 13, 48, 155, 445, 1158, 17, 3, 9, 27, 74, 190, 457];
+    let expected_stability = [
+        3.0412, 13.0913, 48.1585, 154.9373, 445.0556, 1158.0778, 16.6306, 2.9888, 9.4633, 26.9474,
+        73.9723, 189.7037, 457.4379,
+    ];
+    let expected_difficulty = [
+        4.4909, 4.2666, 4.0575, 3.8624, 3.6804, 3.5108, 5.219, 6.8122, 6.4314, 6.0763, 5.7452,
+        5.4363, 5.1483,
+    ];
+
+    assert_eq!(interval_history, expected_interval);
+    assert_eq!(stability_history, expected_stability);
+    assert_eq!(difficulty_history, expected_difficulty);
+}
