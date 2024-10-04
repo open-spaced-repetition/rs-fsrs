@@ -16,17 +16,18 @@ Quickstart:
 
 ```rust
 use chrono::Utc;
-use fsrs::{FSRS, Card, Rating::Easy};
+use fsrs::{FSRS, Card, Rating};
 
 fn main() {
     let fsrs = FSRS::default();
     let card = Card::new();
-    
-    let scheduled_cards = fsrs.schedule(card, Utc::now());
 
-    let updated_card = scheduled_cards.select_card(Easy);
-
-    println!("{:?}", updated_card.log);
+    let scheduleing_card = fsrs.repeat(card, Utc::now());
+    for rating in Rating::iter() {
+        let item = scheduleing_card.get(rating).unwrap().to_owned();
+        println!("{:?}", item.card);
+        println!("{:?}", item.review_log);
+    }
 }
 ```
 
