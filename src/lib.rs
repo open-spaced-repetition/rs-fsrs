@@ -14,7 +14,7 @@ mod scheduler_longterm;
 pub use scheduler_longterm::LongtermScheduler;
 
 mod models;
-pub use models::{Card, Rating, ReviewLog, SchedulingInfo, State};
+pub use models::{Card, Rating, RecordLog, ReviewLog, SchedulingInfo, State};
 
 mod parameters;
 pub use crate::parameters::{Parameters, Seed};
