@@ -38,9 +38,12 @@ impl BasicScheduler {
                 next.state = Learning;
             }
             Easy => {
-                let easy_interval = self.scheduler.parameters.next_interval(next.stability);
-                next.scheduled_days = easy_interval;
-                next.due = self.scheduler.now + Duration::days(easy_interval);
+                let easy_interval = self
+                    .scheduler
+                    .parameters
+                    .next_interval(next.stability, next.elapsed_days);
+                next.scheduled_days = easy_interval as i64;
+                next.due = self.scheduler.now + Duration::days(easy_interval as i64);
                 next.state = Review;
             }
         };
@@ -59,6 +62,7 @@ impl BasicScheduler {
         }
 
         let mut next = self.scheduler.current.clone();
+        let interval = self.scheduler.current.elapsed_days;
         next.difficulty = self
             .scheduler
             .parameters
@@ -80,9 +84,12 @@ impl BasicScheduler {
                 next.state = self.scheduler.last.state;
             }
             Good => {
-                let good_interval = self.scheduler.parameters.next_interval(next.stability);
-                next.scheduled_days = good_interval;
-                next.due = self.scheduler.now + Duration::days(good_interval);
+                let good_interval = self
+                    .scheduler
+                    .parameters
+                    .next_interval(next.stability, interval);
+                next.scheduled_days = good_interval as i64;
+                next.due = self.scheduler.now + Duration::days(good_interval as i64);
                 next.state = Review;
             }
             Easy => {
@@ -90,14 +97,17 @@ impl BasicScheduler {
                     .scheduler
                     .parameters
                     .short_term_stability(self.scheduler.last.stability, Good);
-                let good_interval = self.scheduler.parameters.next_interval(good_stability);
+                let good_interval = self
+                    .scheduler
+                    .parameters
+                    .next_interval(good_stability, interval);
                 let easy_interval = self
                     .scheduler
                     .parameters
-                    .next_interval(next.stability)
-                    .max(good_interval + 1);
-                next.scheduled_days = easy_interval;
-                next.due = self.scheduler.now + Duration::days(easy_interval);
+                    .next_interval(next.stability, interval)
+                    .max(good_interval + 1.0);
+                next.scheduled_days = easy_interval as i64;
+                next.due = self.scheduler.now + Duration::days(easy_interval as i64);
                 next.state = Review;
             }
         }
@@ -143,6 +153,7 @@ impl BasicScheduler {
             &mut next_hard,
             &mut next_good,
             &mut next_easy,
+            interval,
         );
         self.next_state(
             &mut next_again,
@@ -225,28 +236,35 @@ impl BasicScheduler {
         next_hard: &mut Card,
         next_good: &mut Card,
         next_easy: &mut Card,
+        elapsed_days: i64,
     ) {
-        let mut hard_interval = self.scheduler.parameters.next_interval(next_hard.stability);
-        let mut good_interval = self.scheduler.parameters.next_interval(next_good.stability);
+        let mut hard_interval = self
+            .scheduler
+            .parameters
+            .next_interval(next_hard.stability, elapsed_days);
+        let mut good_interval = self
+            .scheduler
+            .parameters
+            .next_interval(next_good.stability, elapsed_days);
         hard_interval = hard_interval.min(good_interval);
-        good_interval = good_interval.max(hard_interval + 1);
+        good_interval = good_interval.max(hard_interval + 1.0);
         let easy_interval = self
             .scheduler
             .parameters
-            .next_interval(next_easy.stability)
-            .max(good_interval + 1);
+            .next_interval(next_easy.stability, elapsed_days)
+            .max(good_interval + 1.0);
 
         next_again.scheduled_days = 0;
         next_again.due = self.scheduler.now + Duration::minutes(5);
 
-        next_hard.scheduled_days = hard_interval;
-        next_hard.due = self.scheduler.now + Duration::days(hard_interval);
+        next_hard.scheduled_days = hard_interval as i64;
+        next_hard.due = self.scheduler.now + Duration::days(hard_interval as i64);
 
-        next_good.scheduled_days = good_interval;
-        next_good.due = self.scheduler.now + Duration::days(good_interval);
+        next_good.scheduled_days = good_interval as i64;
+        next_good.due = self.scheduler.now + Duration::days(good_interval as i64);
 
-        next_easy.scheduled_days = easy_interval;
-        next_easy.due = self.scheduler.now + Duration::days(easy_interval);
+        next_easy.scheduled_days = easy_interval as i64;
+        next_easy.due = self.scheduler.now + Duration::days(easy_interval as i64);
     }
 
     fn next_state(

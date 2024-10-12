@@ -131,7 +131,7 @@ fn test_long_term_scheduler() {
         enable_short_term: false,
         ..Default::default()
     };
-
+    println!("{:?}", params);
     let fsrs = FSRS::new(params);
     let mut card = Card::new();
     let mut now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");

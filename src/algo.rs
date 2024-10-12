@@ -6,7 +6,7 @@ use crate::ImplScheduler;
 
 use chrono::{DateTime, Utc};
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone)]
 pub struct FSRS {
     parameters: Parameters,
 }
@@ -18,9 +18,9 @@ impl FSRS {
 
     pub fn scheduler(&self, card: Card, now: DateTime<Utc>) -> Box<dyn ImplScheduler> {
         if self.parameters.enable_short_term {
-            Box::new(BasicScheduler::new(self.parameters, card, now))
+            Box::new(BasicScheduler::new(self.parameters.clone(), card, now))
         } else {
-            Box::new(LongtermScheduler::new(self.parameters, card, now))
+            Box::new(LongtermScheduler::new(self.parameters.clone(), card, now))
         }
     }
 

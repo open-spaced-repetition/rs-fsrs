@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 
 use crate::models::State::*;
+use crate::Seed;
 use crate::{
     models::{RecordLog, SchedulingInfo},
     Card, Parameters, Rating, ReviewLog,
@@ -16,7 +17,7 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-    pub fn new(parameters: Parameters, card: Card, now: DateTime<Utc>) -> Self {
+    pub fn new(mut parameters: Parameters, card: Card, now: DateTime<Utc>) -> Self {
         let mut current_card: Card = card.clone();
         current_card.elapsed_days = match card.state {
             New => 0,
@@ -24,6 +25,7 @@ impl Scheduler {
         };
         current_card.last_review = now;
         current_card.reps += 1;
+        Self::init_seed(&mut parameters, &current_card, now);
 
         Self {
             parameters,
@@ -43,13 +45,22 @@ impl Scheduler {
             reviewed_date: self.now,
         }
     }
+
+    fn init_seed(parameters: &mut Parameters, current: &Card, now: DateTime<Utc>) {
+        let time = now.timestamp_millis();
+        let reps = current.reps;
+        let mul = current.difficulty * current.stability;
+        parameters.seed = Seed::new(format!("{}_{}_{}", time, reps, mul));
+    }
 }
 
 pub trait ImplScheduler {
     fn preview(&mut self) -> RecordLog {
-        Rating::iter()
-            .map(|&rating| (rating, self.review(rating)))
-            .collect()
+        let mut log = RecordLog::new();
+        for rating in Rating::iter() {
+            log.insert(*rating, self.review(*rating));
+        }
+        log
     }
     fn review(&mut self, rating: Rating) -> SchedulingInfo;
 }

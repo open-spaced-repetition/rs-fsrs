@@ -1,3 +1,8 @@
+use core::f64;
+
+use chrono::Utc;
+
+use crate::alea;
 use crate::Rating;
 
 type Weights = [f64; 19];
@@ -6,7 +11,7 @@ const DEFAULT_WEIGHTS: Weights = [
     2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891, 0.6468,
 ];
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Parameters {
     pub request_retention: f64,
     pub maximum_interval: i32,
@@ -14,6 +19,8 @@ pub struct Parameters {
     pub decay: f64,
     pub factor: f64,
     pub enable_short_term: bool,
+    pub enable_fuzz: bool,
+    pub seed: Seed,
 }
 
 impl Parameters {
@@ -37,10 +44,12 @@ impl Parameters {
     }
 
     #[allow(clippy::suboptimal_flops)]
-    pub fn next_interval(&self, stability: f64) -> i64 {
-        let new_interval =
-            stability / Self::FACTOR * (self.request_retention.powf(1.0 / Self::DECAY) - 1.0);
-        (new_interval.round() as i64).clamp(1, self.maximum_interval as i64)
+    pub fn next_interval(&self, stability: f64, elapsed_days: i64) -> f64 {
+        let new_interval = (stability / Self::FACTOR
+            * (self.request_retention.powf(1.0 / Self::DECAY) - 1.0))
+            .round()
+            .clamp(1.0, self.maximum_interval as f64);
+        self.apply_fuzz(new_interval, elapsed_days)
     }
 
     pub fn next_difficulty(&self, difficulty: f64, rating: Rating) -> f64 {
@@ -92,6 +101,22 @@ impl Parameters {
     fn mean_reversion(&self, initial: f64, current: f64) -> f64 {
         self.w[7].mul_add(initial, (1.0 - self.w[7]) * current)
     }
+
+    fn apply_fuzz(&self, interval: f64, elapsed_days: i64) -> f64 {
+        if !self.enable_fuzz || interval < 2.5 {
+            return interval;
+        }
+
+        let mut generator = alea(self.seed.clone());
+        let fuzz_factor = generator.double();
+        let (min_interval, max_interval) =
+            FuzzRange::get_fuzz_range(interval, elapsed_days, self.maximum_interval);
+
+        fuzz_factor.mul_add(
+            max_interval as f64 - min_interval as f64 + 1.0,
+            min_interval as f64,
+        )
+    }
 }
 
 impl Default for Parameters {
@@ -103,6 +128,108 @@ impl Default for Parameters {
             decay: Self::DECAY,
             factor: Self::FACTOR,
             enable_short_term: true,
+            enable_fuzz: false,
+            seed: Seed::default(),
         }
+    }
+}
+
+struct FuzzRange {
+    start: f64,
+    end: f64,
+    factor: f64,
+}
+
+impl FuzzRange {
+    const fn new(start: f64, end: f64, factor: f64) -> Self {
+        Self { start, end, factor }
+    }
+
+    fn get_fuzz_range(interval: f64, elapsed_days: i64, maximum_interval: i32) -> (i64, i64) {
+        let mut delta: f64 = 1.0;
+        for fuzz_range in FUZZ_RANGE {
+            delta += fuzz_range.factor
+                * f64::max(f64::min(interval, fuzz_range.end) - fuzz_range.start, 0.0);
+        }
+
+        let i = f64::min(interval, maximum_interval as f64);
+        let mut min_interval = f64::max(2.0, f64::round(i - delta));
+        let max_interval: f64 = f64::min(f64::round(i + delta), maximum_interval as f64);
+
+        if i > elapsed_days as f64 {
+            min_interval = f64::max(min_interval, elapsed_days as f64 + 1.0);
+        }
+
+        min_interval = f64::min(min_interval, max_interval);
+
+        (min_interval as i64, max_interval as i64)
+    }
+}
+
+const FUZZ_RANGE: [FuzzRange; 3] = [
+    FuzzRange::new(2.5, 7.0, 0.15),
+    FuzzRange::new(7.0, 20.0, 0.1),
+    FuzzRange::new(20.0, f64::MAX, 0.05),
+];
+
+#[derive(Debug, Clone)]
+pub enum Seed {
+    String(String),
+    Default,
+}
+
+impl Seed {
+    pub fn new<T>(value: T) -> Self
+    where
+        T: std::fmt::Display,
+    {
+        if value.to_string().is_empty() {
+            Self::default()
+        } else {
+            Self::String(value.to_string())
+        }
+    }
+
+    pub fn inner_str(&self) -> &str {
+        match self {
+            Self::String(str) => str,
+            Self::Default => Self::Default.inner_str(),
+        }
+    }
+}
+
+impl std::fmt::Display for Seed {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.inner_str())
+    }
+}
+
+impl From<&Seed> for String {
+    fn from(d: &Seed) -> Self {
+        d.inner_str().to_string()
+    }
+}
+
+impl From<i32> for Seed {
+    fn from(num: i32) -> Self {
+        Self::String(num.to_string())
+    }
+}
+
+impl From<String> for Seed {
+    fn from(s: String) -> Self {
+        Self::String(s)
+    }
+}
+
+impl<'a> From<&'a str> for Seed {
+    fn from(s: &'a str) -> Self {
+        Self::String(s.to_string())
+    }
+}
+
+impl Default for Seed {
+    fn default() -> Self {
+        Self::String(Utc::now().timestamp_millis().to_string())
     }
 }

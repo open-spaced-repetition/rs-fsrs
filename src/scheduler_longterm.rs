@@ -39,6 +39,7 @@ impl LongtermScheduler {
             &mut next_hard,
             &mut next_good,
             &mut next_easy,
+            0,
         );
         self.next_state(
             &mut next_again,
@@ -88,6 +89,7 @@ impl LongtermScheduler {
             &mut next_hard,
             &mut next_good,
             &mut next_easy,
+            interval,
         );
         self.next_state(
             &mut next_again,
@@ -169,31 +171,41 @@ impl LongtermScheduler {
         next_hard: &mut Card,
         next_good: &mut Card,
         next_easy: &mut Card,
+        elapsed_days: i64,
     ) {
         let mut again_interval = self
             .scheduler
             .parameters
-            .next_interval(next_again.stability);
-        let mut hard_interval = self.scheduler.parameters.next_interval(next_hard.stability);
-        let mut good_interval = self.scheduler.parameters.next_interval(next_good.stability);
-        let mut easy_interval = self.scheduler.parameters.next_interval(next_easy.stability);
+            .next_interval(next_again.stability, elapsed_days);
+        let mut hard_interval = self
+            .scheduler
+            .parameters
+            .next_interval(next_hard.stability, elapsed_days);
+        let mut good_interval = self
+            .scheduler
+            .parameters
+            .next_interval(next_good.stability, elapsed_days);
+        let mut easy_interval = self
+            .scheduler
+            .parameters
+            .next_interval(next_easy.stability, elapsed_days);
 
         again_interval = again_interval.min(hard_interval);
-        hard_interval = hard_interval.max(again_interval + 1);
-        good_interval = good_interval.max(hard_interval + 1);
-        easy_interval = easy_interval.max(good_interval + 1);
+        hard_interval = hard_interval.max(again_interval + 1.0);
+        good_interval = good_interval.max(hard_interval + 1.0);
+        easy_interval = easy_interval.max(good_interval + 1.0);
 
-        next_again.scheduled_days = again_interval;
-        next_again.due = self.scheduler.now + Duration::days(again_interval);
+        next_again.scheduled_days = again_interval as i64;
+        next_again.due = self.scheduler.now + Duration::days(again_interval as i64);
 
-        next_hard.scheduled_days = hard_interval;
-        next_hard.due = self.scheduler.now + Duration::days(hard_interval);
+        next_hard.scheduled_days = hard_interval as i64;
+        next_hard.due = self.scheduler.now + Duration::days(hard_interval as i64);
 
-        next_good.scheduled_days = good_interval;
-        next_good.due = self.scheduler.now + Duration::days(good_interval);
+        next_good.scheduled_days = good_interval as i64;
+        next_good.due = self.scheduler.now + Duration::days(good_interval as i64);
 
-        next_easy.scheduled_days = easy_interval;
-        next_easy.due = self.scheduler.now + Duration::days(easy_interval);
+        next_easy.scheduled_days = easy_interval as i64;
+        next_easy.due = self.scheduler.now + Duration::days(easy_interval as i64);
     }
 
     fn next_state(
