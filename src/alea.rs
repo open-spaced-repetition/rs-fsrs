@@ -8,6 +8,17 @@ pub struct AleaState {
     pub s2: f64,
 }
 
+impl From<Alea> for AleaState {
+    fn from(alea: Alea) -> Self {
+        Self {
+            c: alea.c,
+            s0: alea.s0,
+            s1: alea.s1,
+            s2: alea.s2,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Alea {
     c: f64,
@@ -42,22 +53,6 @@ impl Alea {
 
         alea
     }
-
-    fn set_state(&mut self, state: AleaState) {
-        self.c = state.c;
-        self.s0 = state.s0;
-        self.s1 = state.s1;
-        self.s2 = state.s2;
-    }
-
-    const fn get_state(&self) -> AleaState {
-        AleaState {
-            c: self.c,
-            s0: self.s0,
-            s1: self.s1,
-            s2: self.s2,
-        }
-    }
 }
 
 impl Iterator for Alea {
@@ -71,6 +66,17 @@ impl Iterator for Alea {
         self.s2 = t - self.c;
 
         Some(self.s2)
+    }
+}
+
+impl From<AleaState> for Alea {
+    fn from(state: AleaState) -> Self {
+        Self {
+            c: state.c,
+            s0: state.s0,
+            s1: state.s1,
+            s2: state.s2,
+        }
     }
 }
 
@@ -131,12 +137,12 @@ impl Prng {
             .mul_add(TWO_TO_THE_POWER_OF_MINUS_53, self.gen_next())
     }
 
-    pub const fn get_state(&self) -> AleaState {
-        self.xg.get_state()
+    pub fn get_state(&self) -> AleaState {
+        self.xg.into()
     }
 
     pub fn import_state(mut self, state: AleaState) -> Self {
-        self.xg.set_state(state);
+        self.xg = state.into();
         self
     }
 }
