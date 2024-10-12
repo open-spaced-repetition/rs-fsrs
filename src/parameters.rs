@@ -175,6 +175,7 @@ const FUZZ_RANGE: [FuzzRange; 3] = [
 #[derive(Debug, Clone)]
 pub enum Seed {
     String(String),
+    Empty,
     Default,
 }
 
@@ -193,6 +194,7 @@ impl Seed {
     pub fn inner_str(&self) -> &str {
         match self {
             Self::String(str) => str,
+            Self::Empty => Self::Default.inner_str(),
             Self::Default => Self::Default.inner_str(),
         }
     }

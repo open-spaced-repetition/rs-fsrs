@@ -118,17 +118,17 @@ impl Prng {
         }
     }
 
-    pub fn get_next(&mut self) -> f64 {
+    pub fn gen_next(&mut self) -> f64 {
         self.xg.next().unwrap()
     }
 
     pub fn int32(&mut self) -> i32 {
-        wrap_to_i32(self.get_next() * TWO_TO_THE_POWER_OF_32 as f64)
+        wrap_to_i32(self.gen_next() * TWO_TO_THE_POWER_OF_32 as f64)
     }
 
     pub fn double(&mut self) -> f64 {
-        ((self.get_next() * TWO_TO_THE_POWER_OF_21 as f64) as u64 as f64)
-            .mul_add(TWO_TO_THE_POWER_OF_MINUS_53, self.get_next())
+        ((self.gen_next() * TWO_TO_THE_POWER_OF_21 as f64) as u64 as f64)
+            .mul_add(TWO_TO_THE_POWER_OF_MINUS_53, self.gen_next())
     }
 
     pub const fn get_state(&self) -> AleaState {
@@ -147,5 +147,9 @@ fn wrap_to_i32(input: f64) -> i32 {
 }
 
 pub fn alea(seed: Seed) -> Prng {
-    Prng::new(seed)
+    match seed {
+        Seed::String(_) => Prng::new(seed),
+        Seed::Empty => Prng::new(Seed::default()),
+        Seed::Default => Prng::new(Seed::default()),
+    }
 }
