@@ -25,7 +25,7 @@ impl Scheduler {
         };
         current_card.last_review = now;
         current_card.reps += 1;
-        Self::init_seed(&mut parameters, &current_card, now);
+        Self::init_seed(&mut parameters, &current_card);
 
         Self {
             parameters,
@@ -46,8 +46,8 @@ impl Scheduler {
         }
     }
 
-    fn init_seed(parameters: &mut Parameters, current: &Card, now: DateTime<Utc>) {
-        let time = now.timestamp_millis();
+    fn init_seed(parameters: &mut Parameters, current: &Card) {
+        let time = Utc::now().timestamp_millis();
         let reps = current.reps;
         let mul = current.difficulty * current.stability;
         parameters.seed = Seed::new(format!("{}_{}_{}", time, reps, mul));
