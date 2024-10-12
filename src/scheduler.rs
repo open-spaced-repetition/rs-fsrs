@@ -17,7 +17,7 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-    pub fn new(mut parameters: Parameters, card: Card, now: DateTime<Utc>) -> Self {
+    pub fn new(parameters: Parameters, card: Card, now: DateTime<Utc>) -> Self {
         let mut current_card: Card = card.clone();
         current_card.elapsed_days = match card.state {
             New => 0,
@@ -25,15 +25,16 @@ impl Scheduler {
         };
         current_card.last_review = now;
         current_card.reps += 1;
-        Self::init_seed(&mut parameters, &current_card);
-
-        Self {
+        let mut scheduler = Self {
             parameters,
             last: card,
             current: current_card,
             now,
             next: RecordLog::new(),
-        }
+        };
+        scheduler.init_seed();
+
+        scheduler
     }
 
     pub const fn build_log(&self, rating: Rating) -> ReviewLog {
@@ -46,11 +47,11 @@ impl Scheduler {
         }
     }
 
-    fn init_seed(parameters: &mut Parameters, current: &Card) {
-        let time = Utc::now().timestamp_millis();
-        let reps = current.reps;
-        let mul = current.difficulty * current.stability;
-        parameters.seed = Seed::new(format!("{}_{}_{}", time, reps, mul));
+    fn init_seed(&mut self) {
+        let time = self.now.timestamp_millis();
+        let reps = self.current.reps;
+        let mul = self.current.difficulty * self.current.stability;
+        self.parameters.seed = Seed::new(format!("{}_{}_{}", time, reps, mul));
     }
 }
 
