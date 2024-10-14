@@ -80,10 +80,10 @@ impl From<AleaState> for Alea {
     }
 }
 
-const TWO_TO_THE_POWER_OF_32: u64 = 0x100000000; // 2^32
-const TWO_TO_THE_POWER_OF_21: u64 = 0x200000; // 2^21
-const TWO_TO_THE_POWER_OF_MINUS_32: f64 = 1.0 / ((1_u64 << 32) as f64);
-const TWO_TO_THE_POWER_OF_MINUS_53: f64 = 1.0 / ((1_u64 << 53) as f64);
+const TWO_TO_THE_POWER_OF_32: u64 = 1 << 32;
+const TWO_TO_THE_POWER_OF_21: u64 = 1 << 21;
+const TWO_TO_THE_POWER_OF_MINUS_32: f64 = 1.0 / (TWO_TO_THE_POWER_OF_32 as f64);
+const TWO_TO_THE_POWER_OF_MINUS_53: f64 = 1.0 / ((1u64 << 53) as f64);
 
 struct Mash {
     n: f64,
@@ -141,7 +141,7 @@ impl Prng {
         self.xg.into()
     }
 
-    pub fn import_state(mut self, state: AleaState) -> Self {
+    pub fn import_state(mut self, state: impl Into<Alea>) -> Self {
         self.xg = state.into();
         self
     }
