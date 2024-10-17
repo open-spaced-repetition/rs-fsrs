@@ -277,3 +277,27 @@ fn test_seed_example_3() {
     assert_eq!(results, 0.830770346801728);
     assert_eq!(state, expect_alea_state);
 }
+
+#[test]
+fn test_get_retrievability() {
+    const TEST_WEIGHT: [f64; 19] = [
+        0.4072, 1.1829, 3.1262, 15.4722, 7.2102, 0.5316, 1.0651, 0.0234, 1.616, 0.1544, 1.0824,
+        1.9813, 0.0953, 0.2975, 2.2042, 0.2407, 2.9466, 0.5034, 0.6567,
+    ];
+    let params = Parameters {
+        w: TEST_WEIGHT,
+        ..Default::default()
+    };
+    let fsrs = FSRS::new(params);
+    let card = Card::new();
+    let now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
+    let expect_retrievability = [1.0, 1.0, 1.0, 0.9026208];
+    let scheduler = fsrs.repeat(card, now);
+
+    for (i, rating) in Rating::iter().enumerate() {
+        let card = scheduler.get(rating).unwrap().card.clone();
+        let retrievability = card.get_retrievability(card.due);
+
+        assert_eq!(round_float(retrievability, 7), expect_retrievability[i]);
+    }
+}

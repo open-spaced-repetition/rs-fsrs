@@ -1,3 +1,4 @@
+use crate::Parameters;
 use chrono::{DateTime, Utc};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -67,6 +68,16 @@ impl Card {
             due: Utc::now(),
             last_review: Utc::now(),
             ..Default::default()
+        }
+    }
+
+    pub fn get_retrievability(&self, now: DateTime<Utc>) -> f64 {
+        match self.state {
+            State::New => 0.0,
+            _ => {
+                let elapsed_days = now.signed_duration_since(self.last_review).num_days();
+                Parameters::forgeting_curve(elapsed_days, self.stability)
+            }
         }
     }
 }

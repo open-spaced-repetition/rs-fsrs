@@ -129,10 +129,7 @@ impl BasicScheduler {
         let interval = self.scheduler.current.elapsed_days;
         let stability = self.scheduler.last.stability;
         let difficulty = self.scheduler.last.difficulty;
-        let retrievability = self
-            .scheduler
-            .parameters
-            .forgeting_curve(interval, stability);
+        let retrievability = self.scheduler.last.get_retrievability(self.scheduler.now);
 
         let mut next_again = next.clone();
         let mut next_hard = next.clone();

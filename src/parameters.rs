@@ -1,5 +1,3 @@
-use core::f64;
-
 use chrono::Utc;
 
 use crate::alea;
@@ -28,7 +26,7 @@ impl Parameters {
     /// (9/10) ^ (1 / DECAY) - 1
     pub const FACTOR: f64 = 19f64 / 81f64;
 
-    pub fn forgeting_curve(&self, elapsed_days: i64, stability: f64) -> f64 {
+    pub fn forgeting_curve(elapsed_days: i64, stability: f64) -> f64 {
         (1.0 + Self::FACTOR * elapsed_days as f64 / stability).powf(Self::DECAY)
     }
 
