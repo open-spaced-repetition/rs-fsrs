@@ -97,7 +97,6 @@ fn test_basic_scheduler_state() {
 
 #[test]
 fn test_basic_scheduler_memo_state() {
-    use super::*;
     let params = Parameters {
         w: WEIGHTS,
         ..Default::default()
