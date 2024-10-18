@@ -38,16 +38,21 @@ fn string_to_utc(date_string: &str) -> DateTime<Utc> {
     let datetime = DateTime::parse_from_str(date_string, "%Y-%m-%d %H:%M:%S %z %Z").unwrap();
     Utc.from_local_datetime(&datetime.naive_utc()).unwrap()
 }
-
 #[cfg(test)]
-fn round_float(num: f64, precision: i32) -> f64 {
-    let multiplier = 10.0_f64.powi(precision);
-    (num * multiplier).round() / multiplier
+trait RoundFloat {
+    fn round_float(self, precision: i32) -> f64;
+}
+#[cfg(test)]
+impl RoundFloat for f64 {
+    fn round_float(self, precision: i32) -> f64 {
+        let multiplier = 10.0_f64.powi(precision);
+        (self * multiplier).round() / multiplier
+    }
 }
 
 #[test]
 fn test_basic_scheduler_interval() {
-    let fsrs = FSRS::new(Parameters::default());
+    let fsrs = FSRS::default();
     let mut card = Card::new();
     let mut now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
     let mut interval_history = vec![];
@@ -117,8 +122,8 @@ fn test_basic_scheduler_memo_state() {
     }
 
     card = scheduling_card.get(&Rating::Good).unwrap().to_owned().card;
-    assert_eq!(round_float(card.stability, 4), 71.4554);
-    assert_eq!(round_float(card.difficulty, 4), 5.0976);
+    assert_eq!(card.stability.round_float(4), 71.4554);
+    assert_eq!(card.difficulty.round_float(4), 5.0976);
 }
 
 #[test]
@@ -148,8 +153,8 @@ fn test_long_term_scheduler() {
 
         card = record.card;
         interval_history.push(card.scheduled_days);
-        stability_history.push(round_float(card.stability, 4));
-        difficulty_history.push(round_float(card.difficulty, 4));
+        stability_history.push(card.stability.round_float(4));
+        difficulty_history.push(card.difficulty.round_float(4));
         now = card.due;
     }
 
@@ -275,7 +280,7 @@ fn test_seed_example_3() {
 
 #[test]
 fn test_get_retrievability() {
-    let fsrs = FSRS::new(Parameters::default());
+    let fsrs = FSRS::default();
     let card = Card::new();
     let now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
     let expect_retrievability = [1.0, 1.0, 1.0, 0.9026208];
@@ -285,6 +290,6 @@ fn test_get_retrievability() {
         let card = scheduler.get(rating).unwrap().card.clone();
         let retrievability = card.get_retrievability(card.due);
 
-        assert_eq!(round_float(retrievability, 7), expect_retrievability[i]);
+        assert_eq!(retrievability.round_float(7), expect_retrievability[i]);
     }
 }
