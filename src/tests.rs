@@ -47,12 +47,7 @@ fn round_float(num: f64, precision: i32) -> f64 {
 
 #[test]
 fn test_basic_scheduler_interval() {
-    let params = Parameters {
-        w: WEIGHTS,
-        ..Default::default()
-    };
-
-    let fsrs = FSRS::new(params);
+    let fsrs = FSRS::new(Parameters::default());
     let mut card = Card::new();
     let mut now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
     let mut interval_history = vec![];
@@ -63,7 +58,7 @@ fn test_basic_scheduler_interval() {
         interval_history.push(card.scheduled_days);
         now = card.due;
     }
-    let expected = [0, 4, 17, 62, 198, 563, 0, 0, 9, 27, 74, 190, 457];
+    let expected = [0, 4, 15, 48, 136, 351, 0, 0, 7, 13, 24, 43, 77];
     assert_eq!(interval_history, expected);
 }
 
@@ -280,15 +275,7 @@ fn test_seed_example_3() {
 
 #[test]
 fn test_get_retrievability() {
-    const TEST_WEIGHT: [f64; 19] = [
-        0.4072, 1.1829, 3.1262, 15.4722, 7.2102, 0.5316, 1.0651, 0.0234, 1.616, 0.1544, 1.0824,
-        1.9813, 0.0953, 0.2975, 2.2042, 0.2407, 2.9466, 0.5034, 0.6567,
-    ];
-    let params = Parameters {
-        w: TEST_WEIGHT,
-        ..Default::default()
-    };
-    let fsrs = FSRS::new(params);
+    let fsrs = FSRS::new(Parameters::default());
     let card = Card::new();
     let now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
     let expect_retrievability = [1.0, 1.0, 1.0, 0.9026208];
