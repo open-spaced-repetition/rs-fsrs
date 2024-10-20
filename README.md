@@ -22,9 +22,9 @@ fn main() {
     let fsrs = FSRS::default();
     let card = Card::new();
 
-    let scheduleing_card = fsrs.repeat(card, Utc::now());
+    let record_log = fsrs.repeat(card, Utc::now());
     for rating in Rating::iter() {
-        let item = scheduleing_card.get(rating).unwrap().to_owned();
+        let item = record_log[rating].to_owned();
         println!("{:?}", item.card);
         println!("{:?}", item.review_log);
     }

@@ -77,15 +77,15 @@ fn test_basic_scheduler_state() {
     let fsrs = FSRS::new(params);
     let mut card = Card::new();
     let mut now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
-    let mut state_list: Vec<State> = vec![];
-    let mut scheduling_card = fsrs.repeat(card, now);
+    let mut state_list = vec![];
+    let mut record_log = fsrs.repeat(card, now);
 
     for rating in TEST_RATINGS.iter() {
-        card = scheduling_card[rating].card.clone();
-        let rev_log = scheduling_card[rating].review_log.clone();
+        card = record_log[rating].card.clone();
+        let rev_log = record_log[rating].review_log.clone();
         state_list.push(rev_log.state);
         now = card.due;
-        scheduling_card = fsrs.repeat(card, now);
+        record_log = fsrs.repeat(card, now);
     }
     use State::*;
     let expected = [
@@ -105,7 +105,7 @@ fn test_basic_scheduler_memo_state() {
     let fsrs = FSRS::new(params);
     let mut card = Card::new();
     let mut now = string_to_utc("2022-11-29 12:30:00 +0000 UTC");
-    let mut scheduling_card = fsrs.repeat(card.clone(), now);
+    let mut record_log = fsrs.repeat(card.clone(), now);
     let ratings = [
         Rating::Again,
         Rating::Good,
@@ -116,12 +116,12 @@ fn test_basic_scheduler_memo_state() {
     ];
     let intervals = [0, 0, 1, 3, 8, 21];
     for (index, rating) in ratings.iter().enumerate() {
-        card = scheduling_card[rating].card.clone();
+        card = record_log[rating].card.clone();
         now = now + Duration::days(intervals[index] as i64);
-        scheduling_card = fsrs.repeat(card.clone(), now);
+        record_log = fsrs.repeat(card.clone(), now);
     }
 
-    card = scheduling_card.get(&Rating::Good).unwrap().to_owned().card;
+    card = record_log[&Rating::Good].to_owned().card;
     assert_eq!(card.stability.round_float(4), 71.4554);
     assert_eq!(card.difficulty.round_float(4), 5.0976);
 }
@@ -142,11 +142,7 @@ fn test_long_term_scheduler() {
     let mut difficulty_history = vec![];
 
     for rating in TEST_RATINGS.iter() {
-        let record = fsrs
-            .repeat(card.clone(), now)
-            .get(&rating)
-            .unwrap()
-            .to_owned();
+        let record = fsrs.repeat(card.clone(), now)[rating].to_owned();
         let next = fsrs.next(card, now, *rating);
 
         assert_eq!(record.card, next.card);
