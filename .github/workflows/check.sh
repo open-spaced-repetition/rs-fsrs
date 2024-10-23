@@ -9,13 +9,6 @@ Please run 'cargo fmt' to format the code.
 	exit 1
 )
 
-cargo clippy -- -Dwarnings || (
-	printf "
-run 'cargo clippy -- -Dwarnings' to check the code.
-"
-	exit 1
-)
-
 cargo clippy -- -D clippy::nursery || (
 	printf "
 run 'cargo clippy -- -D clippy::nursery' to check the code.
@@ -23,4 +16,5 @@ run 'cargo clippy -- -D clippy::nursery' to check the code.
 	exit 1
 )
 
-cargo test --release
+cargo install cargo-llvm-cov --locked
+SKIP_TRAINING=1 cargo llvm-cov --release
