@@ -76,7 +76,7 @@ impl Card {
             State::New => 0.0,
             _ => {
                 let elapsed_days = now.signed_duration_since(self.last_review).num_days();
-                Parameters::forgeting_curve(elapsed_days, self.stability)
+                Parameters::forgetting_curve(elapsed_days as f64, self.stability)
             }
         }
     }
