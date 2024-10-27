@@ -26,8 +26,8 @@ impl Parameters {
     /// (9/10) ^ (1 / DECAY) - 1
     pub const FACTOR: f64 = 19f64 / 81f64;
 
-    pub fn forgeting_curve(elapsed_days: i64, stability: f64) -> f64 {
-        (1.0 + Self::FACTOR * elapsed_days as f64 / stability).powf(Self::DECAY)
+    pub fn forgetting_curve(elapsed_days: f64, stability: f64) -> f64 {
+        (1.0 + Self::FACTOR * elapsed_days / stability).powf(Self::DECAY)
     }
 
     pub fn init_difficulty(&self, rating: Rating) -> f64 {
