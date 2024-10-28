@@ -8,8 +8,7 @@ Install:
 
 ```toml
 [dependencies]
-fsrs = { git = "https://github.com/open-spaced-repetition/rs-fsrs" }
-chrono = { version = "0.4.23", features = ["serde"] }
+rs-fsrs = { version = "1.2.1" }
 ```
 
 Quickstart:
