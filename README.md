@@ -8,15 +8,14 @@ Install:
 
 ```toml
 [dependencies]
-fsrs = { git = "https://github.com/open-spaced-repetition/rs-fsrs" }
-chrono = { version = "0.4.23", features = ["serde"] }
+rs-fsrs = { version = "1.2.1" }
 ```
 
 Quickstart:
 
 ```rust
 use chrono::Utc;
-use fsrs::{FSRS, Card, Rating};
+use rs_fsrs::{FSRS, Card, Rating};
 
 fn main() {
     let fsrs = FSRS::default();
