@@ -72,16 +72,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06ea2b9bc92be3c2baa9334a323ebca2d6f074ff852cd1d7b11064035cd3868f"
 
 [[package]]
-name = "fsrs"
-version = "1.2.1"
-dependencies = [
- "chrono",
- "rand",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,6 +202,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
+]
+
+[[package]]
+name = "rs-fsrs"
+version = "1.2.1"
+dependencies = [
+ "chrono",
+ "rand",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

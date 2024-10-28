@@ -1,5 +1,5 @@
 [package]
-name = "fsrs"
+name = "rs-fsrs"
 version = "1.2.1"
 edition = "2021"
 license-file = "LICENSE"
