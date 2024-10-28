@@ -15,7 +15,7 @@ Quickstart:
 
 ```rust
 use chrono::Utc;
-use fsrs::{FSRS, Card, Rating};
+use rs_fsrs::{FSRS, Card, Rating};
 
 fn main() {
     let fsrs = FSRS::default();
