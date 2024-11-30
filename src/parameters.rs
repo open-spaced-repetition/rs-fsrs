@@ -36,7 +36,7 @@ impl Parameters {
         (self.w[4] - f64::exp(self.w[5] * (rating_int as f64 - 1.0)) + 1.0).clamp(1.0, 10.0)
     }
 
-    pub fn init_stability(&self, rating: Rating) -> f64 {
+    pub const fn init_stability(&self, rating: Rating) -> f64 {
         let rating_int: i32 = rating as i32;
         self.w[(rating_int - 1) as usize].max(0.1)
     }

@@ -7,6 +7,7 @@ rustup default nightly
 rustup update
 
 rustup component add rustfmt
+rustup component add clippy
 
 cargo fmt --check
 
