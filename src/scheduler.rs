@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
 
-use crate::models::State::*;
 use crate::Seed;
+use crate::models::State::*;
 use crate::{
-    models::{RecordLog, SchedulingInfo},
     Card, Parameters, Rating, ReviewLog,
+    models::{RecordLog, SchedulingInfo},
 };
 
 #[derive(Debug, Clone)]

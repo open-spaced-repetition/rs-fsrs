@@ -1,8 +1,8 @@
+use crate::ImplScheduler;
 use crate::models::{Card, Rating, RecordLog, SchedulingInfo};
 use crate::parameters::Parameters;
 use crate::scheduler_basic::BasicScheduler;
 use crate::scheduler_longterm::LongtermScheduler;
-use crate::ImplScheduler;
 
 use chrono::{DateTime, Utc};
 

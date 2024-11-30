@@ -1,7 +1,7 @@
 use chrono::Utc;
 
-use crate::alea;
 use crate::Rating;
+use crate::alea;
 
 type Weights = [f64; 19];
 const DEFAULT_WEIGHTS: Weights = [
