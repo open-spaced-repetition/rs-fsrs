@@ -1,4 +1,4 @@
-#![deny(warnings)]
+#![deny(clippy::all)]
 mod algo;
 pub use algo::FSRS;
 
