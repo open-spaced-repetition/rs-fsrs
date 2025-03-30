@@ -1,7 +1,7 @@
 #[cfg(test)]
 use {
     crate::{
-        alea::{alea, AleaState},
+        alea::{AleaState, alea},
         algo::FSRS,
         models::{Card, Rating, State},
         parameters::{Parameters, Seed},
