@@ -203,8 +203,8 @@ fn test_alea_int32() {
 
 #[test]
 fn test_alea_import_state() {
-    let mut rng = rand::thread_rng();
-    let mut prng_1 = alea(Seed::new(rng.r#gen::<i32>()));
+    let mut rng = rand::rng();
+    let mut prng_1 = alea(Seed::new(rng.random::<i32>()));
     prng_1.gen_next();
     prng_1.gen_next();
     prng_1.gen_next();
