@@ -1,6 +1,6 @@
 use chrono::{DateTime, Duration, Utc};
 
-use crate::{scheduler::Scheduler, Card, ImplScheduler, Parameters, Rating, SchedulingInfo};
+use crate::{Card, ImplScheduler, Parameters, Rating, SchedulingInfo, scheduler::Scheduler};
 use crate::{Rating::*, State::*};
 pub struct BasicScheduler {
     pub scheduler: Scheduler,
