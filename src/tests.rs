@@ -117,7 +117,7 @@ fn test_basic_scheduler_memo_state() {
     let intervals = [0, 0, 1, 3, 8, 21];
     for (index, rating) in ratings.iter().enumerate() {
         card = record_log[rating].card.clone();
-        now = now + Duration::days(intervals[index] as i64);
+        now += Duration::days(intervals[index] as i64);
         record_log = fsrs.repeat(card.clone(), now);
     }
 
@@ -218,8 +218,8 @@ fn test_alea_import_state() {
         let b = prng_2.gen_next();
 
         assert_eq!(a, b);
-        assert!(a >= 0.0 && a < 1.0);
-        assert!(b >= 0.0 && b < 1.0);
+        assert!((0.0..1.0).contains(&a));
+        assert!((0.0..1.0).contains(&b));
     }
 }
 
