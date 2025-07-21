@@ -51,7 +51,7 @@ impl Scheduler {
         let time = self.now.timestamp_millis();
         let reps = self.current.reps;
         let mul = self.current.difficulty * self.current.stability;
-        self.parameters.seed = Seed::new(format!("{}_{}_{}", time, reps, mul));
+        self.parameters.seed = Seed::new(format!("{time}_{reps}_{mul}"));
     }
 }
 
