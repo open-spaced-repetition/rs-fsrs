@@ -1,5 +1,7 @@
 use chrono::Duration;
 
+const SECONDS_IN_A_DAY: f64 = 24.0 * 3600.0;
+
 /// Trait for working with fractional days in chrono::Duration
 pub trait FractionalDays {
     /// Convert Duration to fractional days (e.g., 1.5 days, 0.5 days)
@@ -11,12 +13,11 @@ pub trait FractionalDays {
 
 impl FractionalDays for Duration {
     fn num_fractional_days(&self) -> f64 {
-        const SECONDS_IN_A_DAY: f64 = 24.0 * 3600.0;
         self.num_seconds() as f64 / SECONDS_IN_A_DAY
     }
 
     fn fractional_days(fractional_days: f64) -> Self {
-        Self::seconds((fractional_days * 24.0 * 60.0 * 60.0).round() as i64)
+        Self::seconds((fractional_days * SECONDS_IN_A_DAY).round() as i64)
     }
 }
 
@@ -24,6 +25,9 @@ impl FractionalDays for Duration {
 mod tests {
     use super::*;
     use chrono::Duration;
+
+    /// Floating-point precision tolerance for testing fractional day conversions
+    const EPSILON: f64 = 1e-10;
 
     #[test]
     fn test_num_fractional_days() {
@@ -73,11 +77,11 @@ mod tests {
         let original = 1.5;
         let duration = Duration::fractional_days(original);
         let result = duration.num_fractional_days();
-        assert!((result - original).abs() < 1e-10);
+        assert!((result - original).abs() < EPSILON);
 
         let original = 7.25;
         let duration = Duration::fractional_days(original);
         let result = duration.num_fractional_days();
-        assert!((result - original).abs() < 1e-10);
+        assert!((result - original).abs() < EPSILON);
     }
 }
