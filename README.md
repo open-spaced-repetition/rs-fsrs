@@ -30,6 +30,26 @@ fn main() {
 }
 ```
 
+## Fractional Days
+
+The library provides support for working with fractional days through the `FractionalDays` trait:
+
+```rust
+use chrono::Duration;
+use rs_fsrs::FractionalDays;
+
+fn main() {
+    // Convert Duration to fractional days
+    let duration = Duration::hours(36); // 1.5 days
+    let days = duration.num_fractional_days(); // 1.5
+    
+    // Create Duration from fractional days
+    let duration = Duration::fractional_days(2.5); // 2.5 days
+}
+```
+
+This is useful when you need more precision than whole days, as chrono's `num_days()` method truncates fractional parts.
+
 ## Development
 
 run
