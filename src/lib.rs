@@ -18,4 +18,8 @@ pub use models::{Card, Rating, RecordLog, ReviewLog, SchedulingInfo, State};
 
 mod parameters;
 pub use crate::parameters::{Parameters, Seed};
+
+mod fractional_days;
+pub use fractional_days::FractionalDays;
+
 mod tests;
